@@ -127,22 +127,50 @@ public class ManoPoker {
         Map<Character, Integer> conteoValores = contarValores();
         return conteoValores.containsValue(2);
     }
-
+    
     private boolean tieneColorDraw() {
-        // Lógica para detectar un Flush Draw
+        // Contar cuántas cartas hay de cada palo
+        Map<Character, Integer> conteoPalos = new HashMap<>();
+        for (Carta carta : cartas) {
+            char palo = carta.getPalo();
+            conteoPalos.put(palo, conteoPalos.getOrDefault(palo, 0) + 1);
+        }
+
+        // Verificar si hay al menos 4 cartas del mismo palo
+        for (int count : conteoPalos.values()) {
+            if (count >= 4) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    private boolean tieneEscaleraAbierta() {
+        List<Integer> valores = obtenerValoresOrdenados();
+        for (int i = 0; i < valores.size() - 3; i++) {
+            if (valores.get(i) + 1 == valores.get(i + 1) && 
+                valores.get(i + 1) + 1 == valores.get(i + 2) && 
+                valores.get(i + 2) + 1 == valores.get(i + 3)) {
+                return true;
+            }
+        }
         return false;
     }
 
     private boolean tieneEscaleraGutshot() {
-        // Lógica para detectar un Straight Gutshot
+        List<Integer> valores = obtenerValoresOrdenados();
+        for (int i = 0; i < valores.size() - 3; i++) {
+            if ((valores.get(i) + 2 == valores.get(i + 2) && 
+                 valores.get(i + 2) + 1 == valores.get(i + 3)) || 
+                (valores.get(i) + 1 == valores.get(i + 1) && 
+                 valores.get(i + 2) == valores.get(i + 1) + 2)) {
+                return true;
+            }
+        }
         return false;
     }
-
-    private boolean tieneEscaleraAbierta() {
-        // Lógica para detectar un Straight Open-ended
-        return false;
-    }
-
     private String cartaAlta() {
         // Devuelve la carta más alta de la mano
         List<Integer> valores = obtenerValoresOrdenados();
