@@ -1,0 +1,11 @@
+AhAcQhJhTh
+- Best hand: Pair
+- Draw: Flush Draw
+- Draw: Straight Gutshot
+
+KdKsKh2d5h
+- Best hand: Three of a Kind
+
+7c7d7s8h9h
+- Best hand: Three of a Kind
+
