@@ -33,11 +33,59 @@ public class PokerEvaluator {
     }
 
     private static void procesarManoCincoCartas(String linea, BufferedWriter bw) throws IOException {
-        // Implementación del Apartado 1
+        if (linea.length() != 10) {
+            System.out.println("Formato de entrada inválido: " + linea);
+            return;
+        }
+
+        List<Carta> cartas = new ArrayList<>();
+        for (int i = 0; i < linea.length(); i += 2) {
+            cartas.add(new Carta(linea.substring(i, i + 2)));
+        }
+
+        ManoPoker mano = new ManoPoker(cartas);
+        String mejorMano = mano.evaluarMano();
+        List<String> draws = mano.detectarDraws();
+
+        bw.write(linea + "\n");
+        bw.write("- Best hand: " + mejorMano + "\n");
+        for (String draw : draws) {
+            bw.write("- Draw: " + draw + "\n");
+        }
     }
 
     private static void procesarManoJugadorMesa(String linea, BufferedWriter bw) throws IOException {
-        // Implementación del Apartado 2
+        String[] partes = linea.split(";");
+        if (partes.length != 3) {
+            System.out.println("Formato de entrada inválido: " + linea);
+            return;
+        }
+
+        // Cartas del jugador
+        List<Carta> cartasJugador = new ArrayList<>();
+        cartasJugador.add(new Carta(partes[0].substring(0, 2)));
+        cartasJugador.add(new Carta(partes[0].substring(2, 4)));
+
+        // Número de cartas comunes
+        int nCartasComunes = Integer.parseInt(partes[1]);
+
+        // Cartas comunes
+        List<Carta> cartasComunes = new ArrayList<>();
+        for (int i = 0; i < nCartasComunes * 2; i += 2) {
+            cartasComunes.add(new Carta(partes[2].substring(i, i + 2)));
+        }
+
+        ManoPoker mejorMano = calcularMejorMano(cartasJugador, cartasComunes);
+
+        bw.write(linea + "\n");
+        bw.write("- Best hand: " + mejorMano.getDescripcion() + "\n");
+
+        if (nCartasComunes < 5) { // Solo calcular draws si hay menos de 5 cartas comunes
+            List<String> draws = mejorMano.detectarDraws();
+            for (String draw : draws) {
+                bw.write("- Draw: " + draw + "\n");
+            }
+        }
     }
 
     private static void procesarManoMultipleJugadores(String linea, BufferedWriter bw) throws IOException {
