@@ -10,33 +10,38 @@ public class ManoPoker {
     }
 
     public String evaluarMano() {
-        // Lógica para evaluar la mejor mano
-        // Por ejemplo, podría ser "Pair of Aces", "Flush", "Straight", etc.
-        // Este método establecerá el valor de 'mejorMano'
+        Map<Character, Integer> conteoValores = contarValores();  // Conteo de las cartas
+        List<Character> valoresOrdenados = obtenerValoresOrdenadosCaracter();  // Valores ordenados
 
-        // Implementación para encontrar la mejor mano
         if (esEscaleraColor()) {
-            mejorMano = "Straight Flush";
+            mejorMano = "Straight Flush " + describirCartas(valoresOrdenados);
         } else if (esPoker()) {
-            mejorMano = "Four of a Kind";
+            char valorPoker = obtenerValorDeMultiplesCartas(conteoValores, 4);
+            mejorMano = "Four of a Kind, " + valorPoker + "s";
         } else if (esFull()) {
-            mejorMano = "Full House";
+            char valorTrio = obtenerValorDeMultiplesCartas(conteoValores, 3);
+            char valorPareja = obtenerValorDeMultiplesCartas(conteoValores, 2);
+            mejorMano = "Full House, " + valorTrio + "s over " + valorPareja + "s";
         } else if (esColor()) {
-            mejorMano = "Flush";
+            mejorMano = "Flush " + describirCartas(valoresOrdenados);
         } else if (esEscalera()) {
-            mejorMano = "Straight";
+            mejorMano = "Straight " + describirCartas(valoresOrdenados);
         } else if (esTrio()) {
-            mejorMano = "Three of a Kind";
+            char valorTrio = obtenerValorDeMultiplesCartas(conteoValores, 3);
+            mejorMano = "Three of a Kind, " + valorTrio + "s";
         } else if (esDoblePareja()) {
-            mejorMano = "Two Pair";
+            List<Character> valoresParejas = obtenerValoresDeMultiplesCartas(conteoValores, 2);
+            mejorMano = "Two Pair, " + valoresParejas.get(0) + "s and " + valoresParejas.get(1) + "s";
         } else if (esPareja()) {
-            mejorMano = "Pair";
+            char valorPareja = obtenerValorDeMultiplesCartas(conteoValores, 2);
+            mejorMano = "Pair of " + valorPareja + "s";
         } else {
-            mejorMano = "High Card " + cartaAlta();
+            mejorMano = "High Card " + Carta.valorAString(valoresOrdenados.get(valoresOrdenados.size() - 1));
         }
 
         return mejorMano;
     }
+
 
     public List<String> detectarDraws() {
         List<String> draws = new ArrayList<>();
@@ -194,4 +199,49 @@ public class ManoPoker {
         Collections.sort(valores);
         return valores;
     }
+    
+ // Devuelve el valor de las cartas que aparecen un número específico de veces (como en el caso de pares, tríos, etc.)
+    private char obtenerValorDeMultiplesCartas(Map<Character, Integer> conteoValores, int cantidad) {
+        for (Map.Entry<Character, Integer> entry : conteoValores.entrySet()) {
+            if (entry.getValue() == cantidad) {
+                return entry.getKey();
+            }
+        }
+        return ' ';
+    }
+
+    // Devuelve los valores de las cartas que forman pares o doble pares
+    private List<Character> obtenerValoresDeMultiplesCartas(Map<Character, Integer> conteoValores, int cantidad) {
+        List<Character> valores = new ArrayList<>();
+        for (Map.Entry<Character, Integer> entry : conteoValores.entrySet()) {
+            if (entry.getValue() == cantidad) {
+                valores.add(entry.getKey());
+            }
+        }
+        Collections.sort(valores, Collections.reverseOrder());  // Ordenamos de mayor a menor
+        return valores;
+    }
+
+ // Devuelve los valores de las cartas en formato ordenado, usado para describir la mano
+    private List<Character> obtenerValoresOrdenadosCaracter() {
+        List<Carta> cartasOrdenadas = new ArrayList<>(cartas);
+        cartasOrdenadas.sort(Comparator.comparingInt(Carta::getValorNumerico).reversed());
+        
+        List<Character> valores = new ArrayList<>();
+        for (Carta carta : cartasOrdenadas) {
+            valores.add(carta.getValor());
+        }
+        return valores;
+    }
+
+
+    // Describir las cartas en una jugada (como en Flush o Straight)
+    private String describirCartas(List<Character> valoresOrdenados) {
+        StringBuilder sb = new StringBuilder();
+        for (Character valor : valoresOrdenados) {
+            sb.append(Carta.valorAString(valor)).append(" ");
+        }
+        return sb.toString().trim();
+    }
+
 }
