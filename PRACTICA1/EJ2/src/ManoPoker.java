@@ -10,33 +10,38 @@ public class ManoPoker {
     }
 
     public String evaluarMano() {
-        // Lógica para evaluar la mejor mano
-        // Por ejemplo, podría ser "Pair of Aces", "Flush", "Straight", etc.
-        // Este método establecerá el valor de 'mejorMano'
+        Map<Character, Integer> conteoValores = contarValores();  // Conteo de las cartas
+        List<Character> valoresOrdenados = obtenerValoresOrdenadosCaracter();  // Valores ordenados
 
-        // Implementación para encontrar la mejor mano
         if (esEscaleraColor()) {
-            mejorMano = "Straight Flush";
+            mejorMano = "Straight Flush " + describirCartas(valoresOrdenados);
         } else if (esPoker()) {
-            mejorMano = "Four of a Kind";
+            char valorPoker = obtenerValorDeMultiplesCartas(conteoValores, 4);
+            mejorMano = "Four of a Kind, " + valorPoker + "s";
         } else if (esFull()) {
-            mejorMano = "Full House";
+            char valorTrio = obtenerValorDeMultiplesCartas(conteoValores, 3);
+            char valorPareja = obtenerValorDeMultiplesCartas(conteoValores, 2);
+            mejorMano = "Full House, " + valorTrio + "s over " + valorPareja + "s";
         } else if (esColor()) {
-            mejorMano = "Flush";
+            mejorMano = "Flush " + describirCartas(valoresOrdenados);
         } else if (esEscalera()) {
-            mejorMano = "Straight";
+            mejorMano = "Straight " + describirCartas(valoresOrdenados);
         } else if (esTrio()) {
-            mejorMano = "Three of a Kind";
+            char valorTrio = obtenerValorDeMultiplesCartas(conteoValores, 3);
+            mejorMano = "Three of a Kind, " + valorTrio + "s";
         } else if (esDoblePareja()) {
-            mejorMano = "Two Pair";
+            List<Character> valoresParejas = obtenerValoresDeMultiplesCartas(conteoValores, 2);
+            mejorMano = "Two Pair, " + valoresParejas.get(0) + "s and " + valoresParejas.get(1) + "s";
         } else if (esPareja()) {
-            mejorMano = "Pair";
+            char valorPareja = obtenerValorDeMultiplesCartas(conteoValores, 2);
+            mejorMano = "Pair of " + valorPareja + "s";
         } else {
-            mejorMano = "High Card " + cartaAlta();
+            mejorMano = "High Card " + Carta.valorAString(valoresOrdenados.get(valoresOrdenados.size() - 1));
         }
 
         return mejorMano;
     }
+
 
     public List<String> detectarDraws() {
         List<String> draws = new ArrayList<>();
@@ -101,13 +106,35 @@ public class ManoPoker {
 
     private boolean esEscalera() {
         List<Integer> valores = obtenerValoresOrdenados();
+        
+        // Verificar si es escalera normal (con As como 14)
+        boolean escaleraNormal = true;
         for (int i = 0; i < valores.size() - 1; i++) {
             if (valores.get(i) + 1 != valores.get(i + 1)) {
-                return false;
+                escaleraNormal = false;
+                break;
             }
         }
-        return true;
+        
+        // Verificar si es escalera baja (A-2-3-4-5) con As como 1
+        boolean escaleraBaja = false;
+        if (valores.contains(14) && valores.get(0) == 2) { // Si hay un As y el menor valor es 2
+            List<Integer> posiblesValores = new ArrayList<>(valores);
+            posiblesValores.remove((Integer) 14); // Eliminar As (14)
+            posiblesValores.add(0, 1); // Añadir As como 1 al principio
+            escaleraBaja = true;
+            for (int i = 0; i < posiblesValores.size() - 1; i++) {
+                if (posiblesValores.get(i) + 1 != posiblesValores.get(i + 1)) {
+                    escaleraBaja = false;
+                    break;
+                }
+            }
+        }
+
+        // Si alguna de las dos formas de escalera es válida
+        return escaleraNormal || escaleraBaja;
     }
+
 
     private boolean esTrio() {
         Map<Character, Integer> conteoValores = contarValores();
@@ -149,28 +176,52 @@ public class ManoPoker {
 
     private boolean tieneEscaleraAbierta() {
         List<Integer> valores = obtenerValoresOrdenados();
+        
+        // Verificamos por bloques de 4 cartas consecutivas
         for (int i = 0; i < valores.size() - 3; i++) {
-            if (valores.get(i) + 1 == valores.get(i + 1) && 
-                valores.get(i + 1) + 1 == valores.get(i + 2) && 
+            if (valores.get(i) + 1 == valores.get(i + 1) &&
+                valores.get(i + 1) + 1 == valores.get(i + 2) &&
                 valores.get(i + 2) + 1 == valores.get(i + 3)) {
                 return true;
             }
         }
+
+        // Verificar caso de escalera baja con As como 1
+        if (valores.contains(14) && valores.get(0) == 2 &&
+            valores.get(1) == 3 && valores.get(2) == 4 && valores.get(3) == 5) {
+            return true;
+        }
+
         return false;
     }
 
+
     private boolean tieneEscaleraGutshot() {
         List<Integer> valores = obtenerValoresOrdenados();
+
+        // Verificamos por bloques de 5 cartas posibles con un hueco en el medio
         for (int i = 0; i < valores.size() - 3; i++) {
-            if ((valores.get(i) + 2 == valores.get(i + 2) && 
-                 valores.get(i + 2) + 1 == valores.get(i + 3)) || 
-                (valores.get(i) + 1 == valores.get(i + 1) && 
-                 valores.get(i + 2) == valores.get(i + 1) + 2)) {
+            // Caso 1: Un hueco entre la primera y la tercera carta
+            if (valores.get(i) + 2 == valores.get(i + 1) && 
+                valores.get(i + 1) + 1 == valores.get(i + 2)) {
+                return true;
+            }
+            // Caso 2: Un hueco entre la segunda y cuarta carta
+            if (valores.get(i) + 1 == valores.get(i + 1) &&
+                valores.get(i + 2) == valores.get(i + 1) + 2) {
                 return true;
             }
         }
+
+        // Caso especial de gutshot con As-2-3-4-5 (escalera baja)
+        if (valores.contains(14) && valores.get(0) == 2 &&
+            valores.get(1) == 3 && valores.get(2) == 4 && valores.get(3) == 5) {
+            return true;
+        }
+
         return false;
     }
+
     private String cartaAlta() {
         // Devuelve la carta más alta de la mano
         List<Integer> valores = obtenerValoresOrdenados();
@@ -194,4 +245,49 @@ public class ManoPoker {
         Collections.sort(valores);
         return valores;
     }
+    
+ // Devuelve el valor de las cartas que aparecen un número específico de veces (como en el caso de pares, tríos, etc.)
+    private char obtenerValorDeMultiplesCartas(Map<Character, Integer> conteoValores, int cantidad) {
+        for (Map.Entry<Character, Integer> entry : conteoValores.entrySet()) {
+            if (entry.getValue() == cantidad) {
+                return entry.getKey();
+            }
+        }
+        return ' ';
+    }
+
+    // Devuelve los valores de las cartas que forman pares o doble pares
+    private List<Character> obtenerValoresDeMultiplesCartas(Map<Character, Integer> conteoValores, int cantidad) {
+        List<Character> valores = new ArrayList<>();
+        for (Map.Entry<Character, Integer> entry : conteoValores.entrySet()) {
+            if (entry.getValue() == cantidad) {
+                valores.add(entry.getKey());
+            }
+        }
+        Collections.sort(valores, Collections.reverseOrder());  // Ordenamos de mayor a menor
+        return valores;
+    }
+
+ // Devuelve los valores de las cartas en formato ordenado, usado para describir la mano
+    private List<Character> obtenerValoresOrdenadosCaracter() {
+        List<Carta> cartasOrdenadas = new ArrayList<>(cartas);
+        cartasOrdenadas.sort(Comparator.comparingInt(Carta::getValorNumerico).reversed());
+        
+        List<Character> valores = new ArrayList<>();
+        for (Carta carta : cartasOrdenadas) {
+            valores.add(carta.getValor());
+        }
+        return valores;
+    }
+
+
+    // Describir las cartas en una jugada (como en Flush o Straight)
+    private String describirCartas(List<Character> valoresOrdenados) {
+        StringBuilder sb = new StringBuilder();
+        for (Character valor : valoresOrdenados) {
+            sb.append(Carta.valorAString(valor)).append(" ");
+        }
+        return sb.toString().trim();
+    }
+
 }

@@ -1,0 +1,11 @@
+AhAc;3;QhJhTh
+- Best hand: Pair of As
+- Draw: Flush Draw
+- Draw: Straight Gutshot
+
+AhAc;5;As2s3h4dJd
+- Best hand: Three of a Kind, As
+
+AhAc;5;2s2s3h4d5d
+- Best hand: Two Pair, As and 2s
+
