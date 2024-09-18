@@ -106,13 +106,35 @@ public class ManoPoker {
 
     private boolean esEscalera() {
         List<Integer> valores = obtenerValoresOrdenados();
+        
+        // Verificar si es escalera normal (con As como 14)
+        boolean escaleraNormal = true;
         for (int i = 0; i < valores.size() - 1; i++) {
             if (valores.get(i) + 1 != valores.get(i + 1)) {
-                return false;
+                escaleraNormal = false;
+                break;
             }
         }
-        return true;
+        
+        // Verificar si es escalera baja (A-2-3-4-5) con As como 1
+        boolean escaleraBaja = false;
+        if (valores.contains(14) && valores.get(0) == 2) { // Si hay un As y el menor valor es 2
+            List<Integer> posiblesValores = new ArrayList<>(valores);
+            posiblesValores.remove((Integer) 14); // Eliminar As (14)
+            posiblesValores.add(0, 1); // Añadir As como 1 al principio
+            escaleraBaja = true;
+            for (int i = 0; i < posiblesValores.size() - 1; i++) {
+                if (posiblesValores.get(i) + 1 != posiblesValores.get(i + 1)) {
+                    escaleraBaja = false;
+                    break;
+                }
+            }
+        }
+
+        // Si alguna de las dos formas de escalera es válida
+        return escaleraNormal || escaleraBaja;
     }
+
 
     private boolean esTrio() {
         Map<Character, Integer> conteoValores = contarValores();
@@ -154,28 +176,52 @@ public class ManoPoker {
 
     private boolean tieneEscaleraAbierta() {
         List<Integer> valores = obtenerValoresOrdenados();
+        
+        // Verificamos por bloques de 4 cartas consecutivas
         for (int i = 0; i < valores.size() - 3; i++) {
-            if (valores.get(i) + 1 == valores.get(i + 1) && 
-                valores.get(i + 1) + 1 == valores.get(i + 2) && 
+            if (valores.get(i) + 1 == valores.get(i + 1) &&
+                valores.get(i + 1) + 1 == valores.get(i + 2) &&
                 valores.get(i + 2) + 1 == valores.get(i + 3)) {
                 return true;
             }
         }
+
+        // Verificar caso de escalera baja con As como 1
+        if (valores.contains(14) && valores.get(0) == 2 &&
+            valores.get(1) == 3 && valores.get(2) == 4 && valores.get(3) == 5) {
+            return true;
+        }
+
         return false;
     }
 
+
     private boolean tieneEscaleraGutshot() {
         List<Integer> valores = obtenerValoresOrdenados();
+
+        // Verificamos por bloques de 5 cartas posibles con un hueco en el medio
         for (int i = 0; i < valores.size() - 3; i++) {
-            if ((valores.get(i) + 2 == valores.get(i + 2) && 
-                 valores.get(i + 2) + 1 == valores.get(i + 3)) || 
-                (valores.get(i) + 1 == valores.get(i + 1) && 
-                 valores.get(i + 2) == valores.get(i + 1) + 2)) {
+            // Caso 1: Un hueco entre la primera y la tercera carta
+            if (valores.get(i) + 2 == valores.get(i + 1) && 
+                valores.get(i + 1) + 1 == valores.get(i + 2)) {
+                return true;
+            }
+            // Caso 2: Un hueco entre la segunda y cuarta carta
+            if (valores.get(i) + 1 == valores.get(i + 1) &&
+                valores.get(i + 2) == valores.get(i + 1) + 2) {
                 return true;
             }
         }
+
+        // Caso especial de gutshot con As-2-3-4-5 (escalera baja)
+        if (valores.contains(14) && valores.get(0) == 2 &&
+            valores.get(1) == 3 && valores.get(2) == 4 && valores.get(3) == 5) {
+            return true;
+        }
+
         return false;
     }
+
     private String cartaAlta() {
         // Devuelve la carta más alta de la mano
         List<Integer> valores = obtenerValoresOrdenados();
