@@ -1,6 +1,6 @@
 4;J1AhAc;J2JsJh;J37c8c;J44sKc;5dKs6cTh9h
-J3: Straight
-J1: Pair
-J2: Pair
-J4: Pair
+J3: 7c8c5d6c9h (Straight)
+J1: AhAc5dKs6c (Pair)
+J2: JsJh5dKs6c (Pair)
+J4: 4sKc5dKs6c (Pair)
 

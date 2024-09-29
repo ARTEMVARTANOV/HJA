@@ -1,20 +1,18 @@
 import java.util.*;
 
 public class ManoPoker {
-    private List<Carta> cartas;
+	private List<Carta> cartas;
     private String mejorMano; // Descripción de la mejor mano
+    private List<Carta> cartasMejorMano; // Cartas que forman la mejor mano
 
     public ManoPoker(List<Carta> cartas) {
         this.cartas = cartas;
+        this.cartasMejorMano = new ArrayList<>(cartas); // Inicializamos con todas las cartas
         this.mejorMano = evaluarMano(); // Evaluamos la mano en el constructor
     }
 
     public String evaluarMano() {
         // Lógica para evaluar la mejor mano
-        // Por ejemplo, podría ser "Pair of Aces", "Flush", "Straight", etc.
-        // Este método establecerá el valor de 'mejorMano'
-
-        // Implementación para encontrar la mejor mano
         if (esEscaleraColor()) {
             mejorMano = "Straight Flush";
         } else if (esPoker()) {
@@ -38,6 +36,16 @@ public class ManoPoker {
         return mejorMano;
     }
 
+
+    public String getCartasFormateadas() {
+        // Devuelve las cartas de la mejor mano en formato "6c7c8c9hTh"
+        StringBuilder sb = new StringBuilder();
+        for (Carta carta : cartasMejorMano) {
+            sb.append(carta.toString());
+        }
+        return sb.toString();
+    }
+    
     public List<String> detectarDraws() {
         List<String> draws = new ArrayList<>();
 
@@ -145,7 +153,7 @@ public class ManoPoker {
 
         return false;
     }
-
+    
 
     private boolean tieneEscaleraAbierta() {
         List<Integer> valores = obtenerValoresOrdenados();
