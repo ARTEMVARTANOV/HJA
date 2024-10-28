@@ -65,6 +65,7 @@ public class Main {
 
         containerPanel.add(inputPanel, BorderLayout.SOUTH);
         frame.add(containerPanel);
+        cardMatrixPanel.clearMatrix();
         frame.setVisible(true);
     }
 

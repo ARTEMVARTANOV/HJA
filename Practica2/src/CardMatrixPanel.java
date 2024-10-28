@@ -56,8 +56,15 @@ public class CardMatrixPanel {
     public void clearMatrix() {
         for (int i = 0; i < 13; i++) {
             for (int j = 0; j < 13; j++) {
-                labels[i][j].setBackground(Color.WHITE);
+                if (i == j) {
+                    labels[i][j].setBackground(new Color(144, 238, 144)); // Verde pastel
+                } else if (i < j) {
+                    labels[i][j].setBackground(new Color(255, 182, 193)); // Rojo pastel
+                } else {
+                    labels[i][j].setBackground(new Color(173, 216, 230)); // Azul pastel
+                }
             }
         }
     }
+
 }

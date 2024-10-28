@@ -74,7 +74,7 @@ public class RangePercentageCalculator {
 	        	}
 	        }
 	        // Colorear la celda correspondiente
-	        cardMatrixPanel.getLabels()[row][col].setBackground(Color.MAGENTA);
+	        cardMatrixPanel.getLabels()[row][col].setBackground(new Color(178, 102, 255));
 	    }
 	  
     }
