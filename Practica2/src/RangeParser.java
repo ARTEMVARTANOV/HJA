@@ -87,7 +87,8 @@ public class RangeParser {
 
         for (int i = 0; i < 13; i++) {
             for (int j = 0; j < 13; j++) {
-                if (labels[i][j].getBackground().equals(Color.YELLOW)) {
+                if (labels[i][j].getBackground().equals(Color.YELLOW) || 
+                		labels[i][j].getBackground().equals(Color.MAGENTA)) {
                     if (i == j) {
                         rangeBuilder.append(getRankChar(i)).append(getRankChar(j)).append(",");
                     } else if (i < j) {

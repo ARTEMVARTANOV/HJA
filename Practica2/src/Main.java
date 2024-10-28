@@ -42,8 +42,17 @@ public class Main {
         });
 
         calculatePercentageButton.addActionListener(e -> {
-            double percentage = rangeCalculator.calculateHandPercentage();
-            JOptionPane.showMessageDialog(frame, "Porcentaje de manos: " + String.format("%.2f", percentage) + "%");
+        	String inputText = rangeInput.getText();
+        	if (inputText.endsWith("%")) {
+        		inputText = inputText.replace("%", "");
+        		int percentage = Integer.parseInt(inputText);
+
+        		rangeCalculator.calculateHandPercentageColour(percentage);
+        	}
+        	else {
+        		double percentage = rangeCalculator.calculateHandPercentage();
+        		JOptionPane.showMessageDialog(frame, "Porcentaje de manos: " + String.format("%.2f", percentage) + "%");
+        	}
         });
 
         JPanel inputPanel = new JPanel();
