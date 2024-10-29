@@ -92,9 +92,9 @@ public class RangeParser {
                     if (i == j) {
                         rangeBuilder.append(getRankChar(i)).append(getRankChar(j)).append(",");
                     } else if (i < j) {
-                        rangeBuilder.append(getRankChar(j)).append(getRankChar(i)).append("s,");
+                        rangeBuilder.append(getRankChar(i)).append(getRankChar(j)).append("s,");
                     } else {
-                        rangeBuilder.append(getRankChar(i)).append(getRankChar(j)).append("o,");
+                        rangeBuilder.append(getRankChar(j)).append(getRankChar(i)).append("o,");
                     }
                 }
             }

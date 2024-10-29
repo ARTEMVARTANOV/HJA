@@ -4,3 +4,7 @@
 /RangeParser.class
 /RangePercentageCalculator.class
 /SliderListener.class
+/HandEvaluator.class
+/BoardCardSelector.class
+/BoardCardSelector$1.class
+/HandEvaluator$HandRank.class
