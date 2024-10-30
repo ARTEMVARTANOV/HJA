@@ -218,11 +218,11 @@ public class Logic {
 
     private List<String> generarCombinaciones(String combo, List<String> board) {
     	List<String> combinaciones = new ArrayList<>();
-        String rank = combo.substring(0, 1);
         String[] palos = {"h", "d", "c", "s"};
 
-        if (combo.length() == 2) { 
-            for (int i = 0; i < palos.length; i++) {
+        if (combo.length() == 2) {
+        	String rank = combo.substring(0, 1);
+        	for (int i = 0; i < palos.length; i++) {
                 for (int j = i + 1; j < palos.length; j++) {
                 	if(!comprobarExistencia(board, rank+palos[i], rank+palos[j]))
                     	combinaciones.add(rank + palos[i] + rank + palos[j]);
@@ -230,22 +230,24 @@ public class Logic {
             }
         }
 		else if (combo.length() == 3) {
+			String rank1 = combo.substring(0, 1);
+			String rank2 = combo.substring(1, 2);
 			if(combo.endsWith("s")) {
 				for (int i = 0; i < palos.length; i++) {
-	                for (int j = i + 1; j < palos.length; j++) {
-	                	if(!comprobarExistencia(board, rank+palos[i], rank+palos[j])) {
+	                for (int j = 0; j < palos.length; j++) {
+	                	if(!comprobarExistencia(board, rank1+palos[i], rank2+palos[j])) {
 	                		if(j == i)
-	                    		combinaciones.add(rank + palos[i] + rank + palos[j]);
+	                    		combinaciones.add(rank1 + palos[i] + rank2 + palos[j]);
 	                	}
 	                }
 	            }
 			}
 			else{
 				for (int i = 0; i < palos.length; i++) {
-	                for (int j = i + 1; j < palos.length; j++) {
-	                	if(!comprobarExistencia(board, rank+palos[i], rank+palos[j])) {
+	                for (int j = 0; j < palos.length; j++) {
+	                	if(!comprobarExistencia(board, rank1+palos[i], rank2+palos[j])) {
 	                		if(j != i)
-	                    		combinaciones.add(rank + palos[i] + rank + palos[j]);
+	                    		combinaciones.add(rank1 + palos[i] + rank2 + palos[j]);
 	                	}
 	                }
 	            }
