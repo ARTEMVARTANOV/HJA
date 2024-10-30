@@ -17,71 +17,97 @@ public class HandEvaluator {
             // Dividir 'caso' en dos cartas (asumiendo que siempre son 4 caracteres)
             String carta1 = caso.substring(0, 2); // Primera carta
             String carta2 = caso.substring(2, 4); // Segunda carta
-
+            
+            String currentHandString = carta1 + carta2;
             List<String> currentHand = Arrays.asList(carta1, carta2); // Convertir combo a lista de carta
             List<String> combinedCards = new ArrayList<>(currentHand);
             combinedCards.addAll(board);
-
+            
             // Evaluar las manos
             if (isStraightFlush(combinedCards)) {
                 int count = handRankCounts.getOrDefault(HandRank.STRAIGHT_FLUSH, 0) + 1;
                 handRankCounts.put(HandRank.STRAIGHT_FLUSH, count);
-                actualizarRangeValues(RangeValues, HandRank.STRAIGHT_FLUSH, combo);
+                actualizarRangeValues(RangeValues, HandRank.STRAIGHT_FLUSH, currentHandString);
             } else if (isFourOfAKind(combinedCards)) {
                 int count = handRankCounts.getOrDefault(HandRank.FOUR_OF_A_KIND, 0) + 1;
                 handRankCounts.put(HandRank.FOUR_OF_A_KIND, count);
-                actualizarRangeValues(RangeValues, HandRank.FOUR_OF_A_KIND, combo);
+                actualizarRangeValues(RangeValues, HandRank.FOUR_OF_A_KIND, currentHandString);
             } else if (isFullHouse(combinedCards)) {
                 int count = handRankCounts.getOrDefault(HandRank.FULL_HOUSE, 0) + 1;
                 handRankCounts.put(HandRank.FULL_HOUSE, count);
-                actualizarRangeValues(RangeValues, HandRank.FULL_HOUSE, combo);
+                actualizarRangeValues(RangeValues, HandRank.FULL_HOUSE, currentHandString);
             } else if (isFlush(combinedCards)) {
                 int count = handRankCounts.getOrDefault(HandRank.FLUSH, 0) + 1;
                 handRankCounts.put(HandRank.FLUSH, count);
-                actualizarRangeValues(RangeValues, HandRank.FLUSH, combo);
+                actualizarRangeValues(RangeValues, HandRank.FLUSH, currentHandString);
             } else if (isStraight(combinedCards)) {
                 int count = handRankCounts.getOrDefault(HandRank.STRAIGHT, 0) + 1;
                 handRankCounts.put(HandRank.STRAIGHT, count);
-                actualizarRangeValues(RangeValues, HandRank.STRAIGHT, combo);
+                actualizarRangeValues(RangeValues, HandRank.STRAIGHT, currentHandString);
             } else if (isThreeOfAKind(combinedCards)) {
                 int count = handRankCounts.getOrDefault(HandRank.THREE_OF_A_KIND, 0) + 1;
                 handRankCounts.put(HandRank.THREE_OF_A_KIND, count);
-                actualizarRangeValues(RangeValues, HandRank.THREE_OF_A_KIND, combo);
+                actualizarRangeValues(RangeValues, HandRank.THREE_OF_A_KIND, currentHandString);
             } else if (isTwoPair(combinedCards)) {
                 int count = handRankCounts.getOrDefault(HandRank.TWO_PAIR, 0) + 1;
                 handRankCounts.put(HandRank.TWO_PAIR, count);
-                actualizarRangeValues(RangeValues, HandRank.TWO_PAIR, combo);
-            } else if (isPair(combinedCards)) {
-                int count = handRankCounts.getOrDefault(HandRank.TWO_PAIR, 0) + 1; // Cambiado a TWO_PAIR
-                handRankCounts.put(HandRank.POCKET_PAIR_BELOW_TOP_PAIR, count);
-                actualizarRangeValues(RangeValues, HandRank.POCKET_PAIR_BELOW_TOP_PAIR, combo);
+                actualizarRangeValues(RangeValues, HandRank.TWO_PAIR, currentHandString);
             } else if (isTopPair(combinedCards)) {
                 int count = handRankCounts.getOrDefault(HandRank.TOP_PAIR, 0) + 1;
                 handRankCounts.put(HandRank.TOP_PAIR, count);
-                actualizarRangeValues(RangeValues, HandRank.TOP_PAIR, combo);
+                actualizarRangeValues(RangeValues, HandRank.TOP_PAIR, currentHandString);
             } else if (isMiddlePair(combinedCards)) {
                 int count = handRankCounts.getOrDefault(HandRank.MIDDLE_PAIR, 0) + 1;
                 handRankCounts.put(HandRank.MIDDLE_PAIR, count);
-                actualizarRangeValues(RangeValues, HandRank.MIDDLE_PAIR, combo);
+                actualizarRangeValues(RangeValues, HandRank.MIDDLE_PAIR, currentHandString);
             } else if (isWeakPair(combinedCards)) {
                 int count = handRankCounts.getOrDefault(HandRank.WEAK_PAIR, 0) + 1;
                 handRankCounts.put(HandRank.WEAK_PAIR, count);
-                actualizarRangeValues(RangeValues, HandRank.WEAK_PAIR, combo);
-            } else if (isAceHigh) {
+                actualizarRangeValues(RangeValues, HandRank.WEAK_PAIR, currentHandString);
+            } else if (isAceHigh(combinaciones)) {
                 int count = handRankCounts.getOrDefault(HandRank.ACE_HIGH, 0) + 1;
                 handRankCounts.put(HandRank.ACE_HIGH, count);
-                actualizarRangeValues(RangeValues, HandRank.ACE_HIGH, combo);
+                actualizarRangeValues(RangeValues, HandRank.ACE_HIGH, currentHandString);
             }
             else {
             	int count = handRankCounts.getOrDefault(HandRank.NO_MADE_HAND, 0) + 1;
                 handRankCounts.put(HandRank.NO_MADE_HAND, count);
-                actualizarRangeValues(RangeValues, HandRank.NO_MADE_HAND, combo);
+                actualizarRangeValues(RangeValues, HandRank.NO_MADE_HAND, currentHandString);
             }
         }
     }
 
 
-    private void actualizarRangeValues(Map<HandRank, Map<String, Integer>> RangeValues, HandRank handRank, String combo) {
+    private boolean isTopPair(List<String> combinedCards) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+	private boolean isMiddlePair(List<String> combinedCards) {
+	// TODO Auto-generated method stub
+	return false;
+}
+
+
+	private boolean isWeakPair(List<String> combinedCards) {
+	// TODO Auto-generated method stub
+	return false;
+    }
+
+
+	private boolean isAceHigh(List<String> combinaciones) {
+	boolean existeAce = false;
+		for (String carta:combinaciones) {
+			if(carta.charAt(0) == 'A') {
+				existeAce = true;
+			}
+		}
+	return existeAce;
+    }
+
+
+	private void actualizarRangeValues(Map<HandRank, Map<String, Integer>> RangeValues, HandRank handRank, String combo) {
         Map<String, Integer> comboCounts = RangeValues.getOrDefault(handRank, new HashMap<>());
         comboCounts.put(combo, comboCounts.getOrDefault(combo, 0) + 1);
         RangeValues.put(handRank, comboCounts); // Vuelve a poner el mapa actualizado
