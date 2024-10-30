@@ -93,9 +93,9 @@ public class GUI {
                 return;
             }
             
-            Map<HandEvaluator.HandRank, Double> probabilities = new HashMap<>();
-            Map<HandEvaluator.HandRank, Map<String, Integer>> RangeValues = new HashMap<>();
-            Map<HandEvaluator.HandRank, Integer> handRankCounts = new HashMap<>();
+            Map<Logic.HandRank, Double> probabilities = new HashMap<>();
+            Map<Logic.HandRank, Map<String, Integer>> RangeValues = new HashMap<>();
+            Map<Logic.HandRank, Integer> handRankCounts = new HashMap<>();
             
             handEvaluator.calculateProbabilities(range, board, probabilities, RangeValues, handRankCounts);
 
@@ -105,8 +105,8 @@ public class GUI {
             StringBuilder result = new StringBuilder("Probabilidades:\n");
             result.append("Total de combos: ").append(totalCombos).append("\n\n");
             
-            for (Map.Entry<HandEvaluator.HandRank, Double> entry : probabilities.entrySet()) {
-                HandEvaluator.HandRank handRank = entry.getKey();
+            for (Map.Entry<Logic.HandRank, Double> entry : probabilities.entrySet()) {
+            	Logic.HandRank handRank = entry.getKey();
                 double probability = entry.getValue();
                 int comboCount = handRankCounts.get(handRank);
                 
