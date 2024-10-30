@@ -3,59 +3,176 @@ import java.util.*;
 public class HandEvaluator {
     // Enumeración para las jugadas posibles
     public enum HandRank {
-        STRAIGHT_FLUSH, FOUR_OF_A_KIND, FULL_HOUSE, FLUSH, STRAIGHT,
-        THREE_OF_A_KIND, TWO_PAIR, PAIR, HIGH_CARD,
-        OVERPAIR, TOP_PAIR, POCKET_PAIR_BELOW_TOP_PAIR, MIDDLE_PAIR, WEAK_PAIR
+        STRAIGHT_FLUSH, FOUR_OF_A_KIND, FULL_HOUSE, FLUSH, 
+        STRAIGHT, THREE_OF_A_KIND, TWO_PAIR, OVERPAIR, TOP_PAIR,
+        POCKET_PAIR_BELOW_TOP_PAIR, MIDDLE_PAIR, WEAK_PAIR, ACE_HIGH,
+        NO_MADE_HAND
     }
 
-    // Evaluar una mano dada (rango + board) y devolver la mejor jugada
-    public HandRank evaluateHand(List<String> range, List<String> board) {
-        // Combinamos el rango y el board
-        List<String> combinedCards = new ArrayList<>(range);
-        combinedCards.addAll(board);
+ // Evaluar una mano dada (rango + board) y devolver la mejor jugada
+    public void evaluateHand(String combo, List<String> board, 
+            Map<HandRank, Integer> handRankCounts, Map<HandRank, Map<String, Integer>> RangeValues) {
+        List<String> combinaciones = generarCombinaciones(combo, board);
+        for (String caso : combinaciones) {
+            // Dividir 'caso' en dos cartas (asumiendo que siempre son 4 caracteres)
+            String carta1 = caso.substring(0, 2); // Primera carta
+            String carta2 = caso.substring(2, 4); // Segunda carta
 
-        // Comprobar jugadas de mayor a menor rango
-        if (isStraightFlush(combinedCards)) return HandRank.STRAIGHT_FLUSH;
-        if (isFourOfAKind(combinedCards)) return HandRank.FOUR_OF_A_KIND;
-        if (isFullHouse(combinedCards)) return HandRank.FULL_HOUSE;
-        if (isFlush(combinedCards)) return HandRank.FLUSH;
-        if (isStraight(combinedCards)) return HandRank.STRAIGHT;
-        if (isThreeOfAKind(combinedCards)) return HandRank.THREE_OF_A_KIND;
-        if (isTwoPair(combinedCards)) return HandRank.TWO_PAIR;
+            List<String> currentHand = Arrays.asList(carta1, carta2); // Convertir combo a lista de carta
+            List<String> combinedCards = new ArrayList<>(currentHand);
+            combinedCards.addAll(board);
 
-        // Llamar a isPair para verificar si hay una pareja y obtener el tipo de pareja
-        HandRank pairRank = isPair(range, board);
-        if (pairRank != null) {
-            return pairRank; // Devolver el tipo de pareja
-        }
-
-        // Si ninguna jugada se cumple, es una carta alta
-        return HandRank.HIGH_CARD;
-    }
-
-    // Método para verificar si una combinación específica es una escalera de color, poker, etc.
-    private boolean isStraightFlush(List<String> cards) {
-        // Creamos un mapa para almacenar las cartas por palo
-        Map<Character, List<String>> cardsBySuit = new HashMap<>();
-
-        // Agrupamos las cartas por palo
-        for (String card : cards) {
-            if (card.length() >= 2) { // Asegurarse de que la carta tenga al menos dos caracteres
-                char suit = card.charAt(1); // Obtenemos el palo de la carta
-                cardsBySuit.putIfAbsent(suit, new ArrayList<>());
-                cardsBySuit.get(suit).add(card);
+            // Evaluar las manos
+            if (isStraightFlush(combinedCards)) {
+                int count = handRankCounts.getOrDefault(HandRank.STRAIGHT_FLUSH, 0) + 1;
+                handRankCounts.put(HandRank.STRAIGHT_FLUSH, count);
+                actualizarRangeValues(RangeValues, HandRank.STRAIGHT_FLUSH, combo);
+            } else if (isFourOfAKind(combinedCards)) {
+                int count = handRankCounts.getOrDefault(HandRank.FOUR_OF_A_KIND, 0) + 1;
+                handRankCounts.put(HandRank.FOUR_OF_A_KIND, count);
+                actualizarRangeValues(RangeValues, HandRank.FOUR_OF_A_KIND, combo);
+            } else if (isFullHouse(combinedCards)) {
+                int count = handRankCounts.getOrDefault(HandRank.FULL_HOUSE, 0) + 1;
+                handRankCounts.put(HandRank.FULL_HOUSE, count);
+                actualizarRangeValues(RangeValues, HandRank.FULL_HOUSE, combo);
+            } else if (isFlush(combinedCards)) {
+                int count = handRankCounts.getOrDefault(HandRank.FLUSH, 0) + 1;
+                handRankCounts.put(HandRank.FLUSH, count);
+                actualizarRangeValues(RangeValues, HandRank.FLUSH, combo);
+            } else if (isStraight(combinedCards)) {
+                int count = handRankCounts.getOrDefault(HandRank.STRAIGHT, 0) + 1;
+                handRankCounts.put(HandRank.STRAIGHT, count);
+                actualizarRangeValues(RangeValues, HandRank.STRAIGHT, combo);
+            } else if (isThreeOfAKind(combinedCards)) {
+                int count = handRankCounts.getOrDefault(HandRank.THREE_OF_A_KIND, 0) + 1;
+                handRankCounts.put(HandRank.THREE_OF_A_KIND, count);
+                actualizarRangeValues(RangeValues, HandRank.THREE_OF_A_KIND, combo);
+            } else if (isTwoPair(combinedCards)) {
+                int count = handRankCounts.getOrDefault(HandRank.TWO_PAIR, 0) + 1;
+                handRankCounts.put(HandRank.TWO_PAIR, count);
+                actualizarRangeValues(RangeValues, HandRank.TWO_PAIR, combo);
+            } else if (isPair(combinedCards)) {
+                int count = handRankCounts.getOrDefault(HandRank.TWO_PAIR, 0) + 1; // Cambiado a TWO_PAIR
+                handRankCounts.put(HandRank.POCKET_PAIR_BELOW_TOP_PAIR, count);
+                actualizarRangeValues(RangeValues, HandRank.POCKET_PAIR_BELOW_TOP_PAIR, combo);
+            } else if (isTopPair(combinedCards)) {
+                int count = handRankCounts.getOrDefault(HandRank.TOP_PAIR, 0) + 1;
+                handRankCounts.put(HandRank.TOP_PAIR, count);
+                actualizarRangeValues(RangeValues, HandRank.TOP_PAIR, combo);
+            } else if (isMiddlePair(combinedCards)) {
+                int count = handRankCounts.getOrDefault(HandRank.MIDDLE_PAIR, 0) + 1;
+                handRankCounts.put(HandRank.MIDDLE_PAIR, count);
+                actualizarRangeValues(RangeValues, HandRank.MIDDLE_PAIR, combo);
+            } else if (isWeakPair(combinedCards)) {
+                int count = handRankCounts.getOrDefault(HandRank.WEAK_PAIR, 0) + 1;
+                handRankCounts.put(HandRank.WEAK_PAIR, count);
+                actualizarRangeValues(RangeValues, HandRank.WEAK_PAIR, combo);
+            } else if (isAceHigh) {
+                int count = handRankCounts.getOrDefault(HandRank.ACE_HIGH, 0) + 1;
+                handRankCounts.put(HandRank.ACE_HIGH, count);
+                actualizarRangeValues(RangeValues, HandRank.ACE_HIGH, combo);
+            }
+            else {
+            	int count = handRankCounts.getOrDefault(HandRank.NO_MADE_HAND, 0) + 1;
+                handRankCounts.put(HandRank.NO_MADE_HAND, count);
+                actualizarRangeValues(RangeValues, HandRank.NO_MADE_HAND, combo);
             }
         }
+    }
 
-        // Verificamos si hay una escalera dentro de cada grupo de cartas del mismo palo
-        for (List<String> suitedCards : cardsBySuit.values()) {
-            if (isStraight(suitedCards)) {
-                return true;
+
+    private void actualizarRangeValues(Map<HandRank, Map<String, Integer>> RangeValues, HandRank handRank, String combo) {
+        Map<String, Integer> comboCounts = RangeValues.getOrDefault(handRank, new HashMap<>());
+        comboCounts.put(combo, comboCounts.getOrDefault(combo, 0) + 1);
+        RangeValues.put(handRank, comboCounts); // Vuelve a poner el mapa actualizado
+    }
+
+
+    private List<String> generarCombinaciones(String combo, List<String> board) {
+    	List<String> combinaciones = new ArrayList<>();
+        String rank = combo.substring(0, 1);
+        String[] palos = {"h", "d", "c", "s"};
+
+        if (combo.length() == 2) { 
+            for (int i = 0; i < palos.length; i++) {
+                for (int j = i + 1; j < palos.length; j++) {
+                	if(!comprobarExistencia(board, rank+palos[i], rank+palos[j]))
+                    	combinaciones.add(rank + palos[i] + rank + palos[j]);
+                }
             }
         }
+		else if (combo.length() == 3) {
+			if(combo.endsWith("s")) {
+				for (int i = 0; i < palos.length; i++) {
+	                for (int j = i + 1; j < palos.length; j++) {
+	                	if(!comprobarExistencia(board, rank+palos[i], rank+palos[j])) {
+	                		if(j == i)
+	                    		combinaciones.add(rank + palos[i] + rank + palos[j]);
+	                	}
+	                }
+	            }
+			}
+			else{
+				for (int i = 0; i < palos.length; i++) {
+	                for (int j = i + 1; j < palos.length; j++) {
+	                	if(!comprobarExistencia(board, rank+palos[i], rank+palos[j])) {
+	                		if(j != i)
+	                    		combinaciones.add(rank + palos[i] + rank + palos[j]);
+	                	}
+	                }
+	            }
+			}
+		}
+		return combinaciones;
+	}
+    
+	private boolean comprobarExistencia(List<String> board,String palos1, String palos2) {
+		boolean existe = false;
+		for(int i = 0; i < board.size(); i++) {
+	        
+			if ((board.get(i).equals(palos1)) || (board.get(i).equals(palos2))) {
+				existe = true;
+			}
+		}
+		return existe;
+	}
 
-        return false;
-    }
+	// Método para verificar si una combinación específica es una escalera de color
+	private boolean isStraightFlush(List<String> cards) {
+	    // Creamos un mapa para almacenar las cartas por palo
+	    Map<Character, List<Integer>> cardsBySuit = new HashMap<>();
+
+	    // Agrupamos las cartas por palo
+	    for (String card : cards) {
+	        if (card.length() >= 2) { // Asegurarse de que la carta tenga al menos dos caracteres
+	            char suit = card.charAt(1); // Obtenemos el palo de la carta
+	            int rank = getRankValue(card.charAt(0)); // Obtener el valor de la carta (A, 2, ..., K)
+	            cardsBySuit.putIfAbsent(suit, new ArrayList<>());
+	            cardsBySuit.get(suit).add(rank);
+	        }
+	    }
+
+	    // Verificamos si hay una escalera dentro de cada grupo de cartas del mismo palo
+	    for (List<Integer> suitedCards : cardsBySuit.values()) {
+	        if (suitedCards.size() >= 5 && isStraight(cards)) {
+	            return true;
+	        }
+	    }
+
+	    return false;
+	}
+
+	// Método auxiliar para obtener el valor numérico de una carta
+	private int getRankValue(char rank) {
+	    switch (rank) {
+	        case 'A': return 14; // As
+	        case 'K': return 13; // Rey
+	        case 'Q': return 12; // Reina
+	        case 'J': return 11; // Jota
+	        default: return Character.getNumericValue(rank); // Para 2-10
+	    }
+	}
+
 
 
     // Métodos adicionales para verificar otras jugadas (escalera, color, full house, etc.)
@@ -195,38 +312,25 @@ public class HandEvaluator {
         return pairCount >= 2;
     }
 
-    private HandRank isPair(List<String> range, List<String> board) {
-        // Creamos un mapa para contar cuántas veces aparece cada valor de carta
+    private boolean isPair(List<String> cards) {
         Map<Character, Integer> cardCount = new HashMap<>();
         
-        // Recorremos las cartas del rango y del board, contando cuántas veces aparece cada valor (ignoramos palo)
-        for (String card : range) {
+        // Contar cuántas veces aparece cada carta
+        for (String card : cards) {
             char rank = card.charAt(0);
             cardCount.put(rank, cardCount.getOrDefault(rank, 0) + 1);
         }
 
-        for (String card : board) {
-            char rank = card.charAt(0);
-            cardCount.put(rank, cardCount.getOrDefault(rank, 0) + 1);
-        }
-
-        // Buscar si hay una pareja en las cartas del rango
-        for (String card : range) {
-            char rank = card.charAt(0);
-            if (cardCount.get(rank) == 2) {
-                // Se ha detectado una pareja, ahora distinguimos entre las subcategorías
-                return evaluatePairType(rank, board);
+        // Verificar si hay al menos un par
+        for (int count : cardCount.values()) {
+            if (count == 2) {
+                return true; // Si encontramos un par, retornamos true
             }
         }
 
-        // Si no se encuentra ninguna pareja, devolver null (no hay pareja)
-        return null;
+        return false; // Si no hay pares, retornamos false
     }
 
-    private boolean isHighCard(List<String> cards) {
-        // Si ninguna de las jugadas anteriores es cierta, la jugada es una carta alta
-        return true; // La lógica para la carta alta es implícita cuando las demás jugadas no se cumplen
-    }
     
     private int getCardValue(char card) {
         switch (card) {
@@ -247,96 +351,35 @@ public class HandEvaluator {
         }
     }
     
-    private HandRank evaluatePairType(char pairRank, List<String> board) {
-        // Obtener la carta más alta y la segunda carta más alta del board
-        int highestBoardCard = getHighestCardValue(board);
-        int secondHighestBoardCard = getSecondHighestCardValue(board);
-
-        // Obtener el valor de la pareja detectada
-        int pairValue = getCardValue(pairRank);
-
-        // Verificar si es una overpair
-        if (pairValue > highestBoardCard) {
-            return HandRank.OVERPAIR;
-        }
-
-        // Verificar si es una top pair
-        if (pairValue == highestBoardCard) {
-            return HandRank.TOP_PAIR;
-        }
-
-        // Verificar si es una pocket pair below top pair
-        if (pairValue < highestBoardCard && pairValue > secondHighestBoardCard) {
-            return HandRank.POCKET_PAIR_BELOW_TOP_PAIR;
-        }
-
-        // Verificar si es una middle pair
-        if (pairValue == secondHighestBoardCard) {
-            return HandRank.MIDDLE_PAIR;
-        }
-
-        // Si ninguna de las anteriores se cumple, es una weak pair
-        return HandRank.WEAK_PAIR;
-    }
-    private int getHighestCardValue(List<String> board) {
-        int highestValue = 0;
-        for (String card : board) {
-            int cardValue = getCardValue(card.charAt(0));
-            if (cardValue > highestValue) {
-                highestValue = cardValue;
-            }
-        }
-        return highestValue;
-    }
-
-    private int getSecondHighestCardValue(List<String> board) {
-        int highestValue = 0;
-        int secondHighestValue = 0;
-        for (String card : board) {
-            int cardValue = getCardValue(card.charAt(0));
-            if (cardValue > highestValue) {
-                secondHighestValue = highestValue;
-                highestValue = cardValue;
-            } else if (cardValue > secondHighestValue) {
-                secondHighestValue = cardValue;
-            }
-        }
-        return secondHighestValue;
-    }
-    
-    public Map<HandRank, Double> calculateProbabilities(List<String> range, List<String> board) {
-        Map<HandRank, Integer> comboCounts = countCombosByHandRank(range, board);
-        Map<HandRank, Double> probabilities = new HashMap<>();
+    public void calculateProbabilities(List<String> range, List<String> board,
+    		Map<HandRank, Double> probabilities, Map<HandRank, Map<String, Integer>> RangeValues,
+    		Map<HandRank, Integer> handRankCounts) {
+        countCombosByHandRank(range, board, handRankCounts, RangeValues);
 
         // Calcular el total de combinaciones posibles
-        int totalCombos = comboCounts.values().stream().mapToInt(Integer::intValue).sum();
+        int totalCombos = handRankCounts.values().stream().mapToInt(Integer::intValue).sum();
 
         // Calcular la probabilidad de cada jugada
-        for (Map.Entry<HandRank, Integer> entry : comboCounts.entrySet()) {
+        for (Map.Entry<HandRank, Integer> entry : handRankCounts.entrySet()) {
             double probability = (entry.getValue() / (double) totalCombos) * 100;
             probabilities.put(entry.getKey(), probability);
         }
-
-        return probabilities;
     }
     
-    public Map<HandRank, Integer> countCombosByHandRank(List<String> range, List<String> board) {
-        Map<HandRank, Integer> handRankCounts = new HashMap<>();
-        
+    public void countCombosByHandRank(List<String> range, List<String> board, 
+    	Map<HandRank, Integer> handRankCounts, Map<HandRank, Map<String, Integer>> RangeValues) {
         // Inicializamos el mapa con todas las jugadas en 0
         for (HandRank rank : HandRank.values()) {
+            Map<String, Integer> innerMap = new HashMap<>();
+            RangeValues.put(rank, innerMap);
             handRankCounts.put(rank, 0);
         }
-
         // Para cada combinación posible en el rango, evaluamos la mano y aumentamos el conteo
         for (String combo : range) {
-            List<String> currentHand = Arrays.asList(combo.split("")); // Convertir combo a lista de cartas
-
-            // Evaluamos la mano usando evaluateHand
-            HandRank rank = evaluateHand(currentHand, board);
-            handRankCounts.put(rank, handRankCounts.get(rank) + 1);
+        	// Evaluamos la mano usando evaluateHand
+        	evaluateHand(combo, board, handRankCounts, RangeValues);
         }
-
-        return handRankCounts;
     } 
 }
+
+//cardMap.put(cardName, cardMap.getOrDefault(cardName, 0) + 1); // Esto funcionará

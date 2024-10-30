@@ -27,7 +27,7 @@ public class BoardCardSelector {
 
     public BoardCardSelector() {
         panel = new JPanel();
-        panel.setLayout(new GridLayout(13, 4)); // 13 filas (de As a 2), 4 columnas (h, c, d, s)
+        panel.setLayout(new GridLayout(13, 4, 10, 10)); // 13 filas (de As a 2), 4 columnas (h, c, d, s)
         labels = new JLabel[13][4];
 
         createBoard();
@@ -96,4 +96,21 @@ public class BoardCardSelector {
 
         return selectedCards;
     }
+
+	public void clearBoard() {
+		for (int i = 0; i < 13; i++) {
+            for (int j = 0; j < 4; j++) {
+            	if (j == 0) {
+                    labels[i][j].setBackground(new Color(255, 182, 193)); // Verde pastel
+                } else if (j == 1) {
+                    labels[i][j].setBackground(new Color(144, 238, 144)); // Rojo pastel
+                } else if (j == 2) {
+                    labels[i][j].setBackground(new Color(173, 216, 230)); // Rojo pastel
+                } else {
+                    labels[i][j].setBackground(new Color(211, 211, 211)); // Azul pastel
+                }
+            }
+        }
+		
+	}
 }

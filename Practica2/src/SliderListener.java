@@ -4,14 +4,13 @@ import javax.swing.event.ChangeListener;
 
 public class SliderListener implements ChangeListener {
     private JLabel[][] labels;
-    private Main app;
+    private GUI app;
 
-    public SliderListener(JLabel[][] labels, Main app) {
+    public SliderListener(JLabel[][] labels, GUI app) {
         this.labels = labels;
         this.app = app;
     }
 
-    @Override
     public void stateChanged(ChangeEvent e) {
         JSlider slider = (JSlider) e.getSource();
         int value = slider.getValue();
