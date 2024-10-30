@@ -3,6 +3,10 @@ import java.util.*;
 public class HandEvaluator {
 	private Logic logica;
 	
+	public HandEvaluator() {
+        this.logica = new Logic(); // Inicializa el objeto aquí.
+    }
+	
     public void calculateProbabilities(List<String> range, List<String> board,
     		Map<Logic.HandRank, Double> probabilities, Map<Logic.HandRank, Map<String, Integer>> RangeValues,
     		Map<Logic.HandRank, Integer> handRankCounts) {

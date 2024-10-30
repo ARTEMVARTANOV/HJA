@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,14 +30,15 @@ public class Logic {
             List<String> combinedCardsArray = new ArrayList<>(currentHand);
             combinedCardsArray.addAll(board);
             
+            String boardCards = String.join("", combinedCardsArray);
             String combinedCards = String.join("", combinedCardsArray);
-            evaluateHand(combinedCards, handRankCounts, RangeValues, currentHandString);
+            evaluateHand(combinedCards, handRankCounts, RangeValues, currentHandString, boardCards);
         }
     }
 
 
     private void evaluateHand(String combinedCards, Map<HandRank, Integer> handRankCounts,
-			Map<HandRank, Map<String, Integer>> RangeValues, String currentHandString) {
+			Map<HandRank, Map<String, Integer>> RangeValues, String currentHandString, String boardCards) {
     	// Evaluar las manos
     	if (isRoyalFlush(combinedCards)) {
             int count = handRankCounts.getOrDefault(HandRank.ROYAL_FLUSH, 0) + 1;
@@ -70,23 +72,23 @@ public class Logic {
             int count = handRankCounts.getOrDefault(HandRank.TWO_PAIR, 0) + 1;
             handRankCounts.put(HandRank.TWO_PAIR, count);
             actualizarRangeValues(RangeValues, HandRank.TWO_PAIR, currentHandString);
-        }else if (isOverPair(combinedCards)) {
+        }else if (isOverPair(currentHandString, boardCards)) {
             int count = handRankCounts.getOrDefault(HandRank.OVERPAIR, 0) + 1;
             handRankCounts.put(HandRank.OVERPAIR, count);
             actualizarRangeValues(RangeValues, HandRank.OVERPAIR, currentHandString);
-        }else if (isTopPair(combinedCards)) {
+        }else if (isTopPair(combinedCards, boardCards)) {
             int count = handRankCounts.getOrDefault(HandRank.TOP_PAIR, 0) + 1;
             handRankCounts.put(HandRank.TOP_PAIR, count);
             actualizarRangeValues(RangeValues, HandRank.TOP_PAIR, currentHandString);
-        }else if (isPocketPairBelowTopPair(combinedCards)) {
-            int count = handRankCounts.getOrDefault(HandRank.POCKET_PAIR_BELOW_TOP_PAIR, 0) + 1;
-            handRankCounts.put(HandRank.POCKET_PAIR_BELOW_TOP_PAIR, count);
-            actualizarRangeValues(RangeValues, HandRank.POCKET_PAIR_BELOW_TOP_PAIR, currentHandString);
-        }else if (isMiddlePair(combinedCards)) {
+        }else if (isMiddlePair(combinedCards, boardCards)) {
             int count = handRankCounts.getOrDefault(HandRank.MIDDLE_PAIR, 0) + 1;
             handRankCounts.put(HandRank.MIDDLE_PAIR, count);
             actualizarRangeValues(RangeValues, HandRank.MIDDLE_PAIR, currentHandString);
-        }else if (isWeakPair(combinedCards)) {
+        }else if (isPocketPairBelowTopPair(combinedCards, boardCards)) {
+            int count = handRankCounts.getOrDefault(HandRank.POCKET_PAIR_BELOW_TOP_PAIR, 0) + 1;
+            handRankCounts.put(HandRank.POCKET_PAIR_BELOW_TOP_PAIR, count);
+            actualizarRangeValues(RangeValues, HandRank.POCKET_PAIR_BELOW_TOP_PAIR, currentHandString);
+        }else if (isPair(combinedCards)) {
             int count = handRankCounts.getOrDefault(HandRank.WEAK_PAIR, 0) + 1;
             handRankCounts.put(HandRank.WEAK_PAIR, count);
             actualizarRangeValues(RangeValues, HandRank.WEAK_PAIR, currentHandString);
@@ -101,31 +103,106 @@ public class Logic {
         }
 		
 	}
+    private boolean isOverPair(String combinedCards, String boardCards) {
+        // Extraer los valores de las cartas en la mano
+        char firstCardRank = combinedCards.charAt(0);
+        char secondCardRank = combinedCards.charAt(2);
 
+        // Encontrar la carta más alta del board
+        char highestBoardRank = '2'; // El valor más bajo posible es '2'
+        for (int i = 0; i < boardCards.length(); i += 2) {
+            char boardCardRank = boardCards.charAt(i); // Obtener el valor de la carta del board
+            if (charAnum(boardCardRank) > charAnum(highestBoardRank)) {
+                highestBoardRank = boardCardRank; // Actualizar la carta más alta del board
+            }
+        }
 
-	private boolean isPocketPairBelowTopPair(List<String> combinedCards) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+        // Verificar si la pareja en la mano es superior a la carta más alta del board
+        return (firstCardRank == secondCardRank) && (charAnum(firstCardRank) > charAnum(highestBoardRank));
+    }
 
+    private boolean isTopPair(String combinedCards, String boardCards) {
+        // Encontrar la carta más alta del board
+        char highestBoardRank = '2'; // El valor más bajo posible es '2'
+        for (int i = 0; i < boardCards.length(); i += 2) {
+            char boardCardRank = boardCards.charAt(i); // Obtener el valor de la carta del board
+            if (charAnum(boardCardRank) > charAnum(highestBoardRank)) {
+                highestBoardRank = boardCardRank; // Actualizar la carta más alta del board
+            }
+        }
 
-	private boolean isOverPair(List<String> combinedCards) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+        return isRankInCombinedCards(combinedCards, highestBoardRank, 2);
+    }
 
+    private boolean isMiddlePair(String combinedCards, String boardCards) {
+        // Encontrar las cartas del board
+        List<Character> boardRanks = new ArrayList<>();
+        
+        for (int i = 0; i < boardCards.length(); i += 2) {
+            char boardCardRank = boardCards.charAt(i);
+            boardRanks.add(boardCardRank);
+        }
+        
+        // Ordenar las cartas del board para encontrar la segunda más alta
+        Collections.sort(boardRanks, (a, b) -> charAnum(b) - charAnum(a)); // Ordenar de mayor a menor
 
-	private boolean isTopPair(List<String> combinedCards) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+        // Verificar si hay al menos dos cartas distintas en el board
+        if (boardRanks.size() < 2) {
+            return false; // No hay suficientes cartas para determinar una pareja media
+        }
 
+        // Obtener la segunda carta más alta
+        char secondHighestBoardRank = boardRanks.get(1); // Segunda más alta
 
-	private boolean isMiddlePair(List<String> combinedCards) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+        // Contar cuántas veces aparece la segunda carta más alta en combinedCards
+        int pairCount = 0;
+        for (int i = 0; i < combinedCards.length(); i += 2) {
+            char rank = combinedCards.charAt(i);
+            if (rank == secondHighestBoardRank) {
+                pairCount++;
+            }
+        }
 
+        return pairCount == 2; // Retorna true si hay un par
+    }
+
+    
+    private boolean isPocketPairBelowTopPair(String combinedCards, String boardCards) {
+        // Encontrar la carta más baja y más alta del board
+        char lowestBoardRank = 'A'; // El valor más alto posible es 'A'
+        char highestBoardRank = '2'; // El valor más bajo posible es '2'
+        
+        for (int i = 0; i < boardCards.length(); i += 2) {
+            char boardCardRank = boardCards.charAt(i);
+            
+            if (charAnum(boardCardRank) < charAnum(lowestBoardRank)) {
+                lowestBoardRank = boardCardRank; // Actualizar la carta más baja del board
+            }
+            
+            if (charAnum(boardCardRank) > charAnum(highestBoardRank)) {
+                highestBoardRank = boardCardRank; // Actualizar la carta más alta del board
+            }
+        }
+
+        // Contar las cartas en combinedCards
+        Map<Character, Integer> cardCount = new HashMap<>();
+        for (int i = 0; i < combinedCards.length(); i += 2) {
+            char rank = combinedCards.charAt(i);
+            cardCount.put(rank, cardCount.getOrDefault(rank, 0) + 1);
+        }
+
+        // Comprobar si hay un par que esté entre lowestBoardRank y highestBoardRank
+        for (Map.Entry<Character, Integer> entry : cardCount.entrySet()) {
+            char rank = entry.getKey();
+            int count = entry.getValue();
+            
+            if (count == 2 && charAnum(rank) > charAnum(lowestBoardRank) && charAnum(rank) < charAnum(highestBoardRank)) {
+                return true; // Encontramos un pocket pair que está entre las cartas del board
+            }
+        }
+
+        return false; // No se encontró un pocket pair que cumpla con las condiciones
+    }
 
 	private boolean isWeakPair(List<String> combinedCards) {
 	// TODO Auto-generated method stub
@@ -384,6 +461,20 @@ public class Logic {
         }
 
         return false; // Si no hay pares, retornamos false
+    }
+    
+    private boolean isRankInCombinedCards(String combinedCards, char rank, int count) {
+        int occurrences = 0;
+
+        // Contar cuántas veces aparece el rango en combinedCards
+        for (int i = 0; i < combinedCards.length(); i += 2) {
+            char cardRank = combinedCards.charAt(i); // Obtener el valor de la carta de combinedCards
+            if (cardRank == rank) {
+                occurrences++;
+            }
+        }
+
+        return occurrences == count; // Retornar true si aparece el número requerido de veces
     }
 
 }
