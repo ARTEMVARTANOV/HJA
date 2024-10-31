@@ -100,8 +100,8 @@ public class GUI {
             List<String> range = Arrays.asList(rangeText.split(","));
             List<String> board = boardCardSelector.getSelectedCards();
             
-            if (board.size() < 3) {
-                JOptionPane.showMessageDialog(frame, "Por favor, selecciona al menos tres cartas del board.");
+            if (board.size() < 3 && board.size() > 5) {
+                JOptionPane.showMessageDialog(frame, "Por favor, selecciona entre tres y cinco cartas del board.");
                 return;
             }
             
@@ -132,7 +132,7 @@ public class GUI {
                         if (!sortedCombos.isEmpty()) {
                         	StringBuilder combosList = new StringBuilder("  Combinaciones: ");
 	                        for (Map.Entry<String, Integer> comboEntry : sortedCombos) {
-	                            combosList.append(comboEntry.getKey()).append("(").append(comboEntry.getValue()).append("), ");
+	                            combosList.append(comboEntry.getKey()).append(", ");
 	                        }
                         
 	                        if (combosList.length() > 0) {
@@ -157,8 +157,8 @@ public class GUI {
             List<String> board = boardCardSelector.getSelectedCards();
 
             // Validar que se han seleccionado al menos tres cartas del board
-            if (board.size() < 3) {
-                JOptionPane.showMessageDialog(frame, "Por favor, selecciona al menos tres cartas del board.");
+            if (board.size() < 3 && board.size() > 5) {
+                JOptionPane.showMessageDialog(frame, "Por favor, selecciona entre tres y cinco cartas del board.");
                 return;
             }
 

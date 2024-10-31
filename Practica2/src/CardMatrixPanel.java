@@ -32,13 +32,21 @@ public class CardMatrixPanel {
     }
 
     private void createMatrix() {
+    	Color color;
         for (int i = 0; i < 13; i++) {
             for (int j = 0; j < 13; j++) {
                 JLabel label = new JLabel(cardCombinations[i][j], SwingConstants.CENTER);
                 label.setBorder(new LineBorder(Color.BLACK));
                 label.setOpaque(true);
                 label.setBackground(Color.WHITE);
-                label.addMouseListener(new LabelListener(label));
+                if (i == j) {
+                    color = new Color(144, 238, 144); // Verde pastel
+                } else if (i < j) {
+                	color = new Color(255, 182, 193); // Rojo pastel
+                } else {
+                	color = new Color(173, 216, 230); // Azul pastel
+                }
+                label.addMouseListener(new LabelListener(label, color));
                 panel.add(label);
                 labels[i][j] = label;
             }

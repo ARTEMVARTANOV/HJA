@@ -9,7 +9,7 @@ import java.util.Map;
 public class Draws {
     private Logic logica = new Logic();
     
-    public enum typeDraws {
+    public enum typeDraws{
         FLUSH_DRAW, GUTSHOT_DRAW, OPEN_ENDED_DRAW
     }
     
@@ -86,20 +86,26 @@ public class Draws {
             valores.contains(3) && valores.contains(4))||
         	((valores.contains(13) && valores.size() == 5 &&
             !valores.contains(1) && valores.contains(2) && 
-            valores.contains(3) && valores.contains(4))))){
+            valores.contains(3) && valores.contains(4))||
+        	((valores.contains(13) && valores.size() == 5 &&
+            valores.contains(1) && valores.contains(2) && 
+            valores.contains(3) && !valores.contains(4)))))){
             return true;
         }
 
-      //caso especial escalera alta
+     // Caso especial escalera alta
         if ((valores.contains(9) && valores.size() == 5 &&
-        	valores.contains(10) && valores.contains(11) && 
-            !valores.contains(12) && valores.contains(13)) ||
+             valores.contains(10) && valores.contains(11) && 
+             !valores.contains(12) && valores.contains(13)) ||
             (valores.contains(9) && valores.size() == 5 &&
-            valores.contains(10) && !valores.contains(11) && 
-            valores.contains(12) && valores.contains(13)) ||
+             valores.contains(10) && !valores.contains(11) && 
+             valores.contains(12) && valores.contains(13)) ||
             (valores.contains(9) && valores.size() == 5 &&
-            !valores.contains(10) && valores.contains(11) && 
-            valores.contains(12) && valores.contains(13)) ) {
+             !valores.contains(10) && valores.contains(11) && 
+             valores.contains(12) && valores.contains(13)) ||
+            (!valores.contains(9) && valores.size() == 5 &&
+             valores.contains(10) && valores.contains(11) && 
+             valores.contains(12) && valores.contains(13))) {
             return true; // Es un gutshot especial de As-K-Q-J-T
         }
 
@@ -108,6 +114,19 @@ public class Draws {
 
 	private boolean OpenEndedStraightDrawCombos(String combinedCards) {
 		List<Integer> valores = obtenerValoresOrdenados(combinedCards);
+		
+		if(!valores.contains(9) && valores.size() == 5 &&
+	             valores.contains(10) && valores.contains(11) && 
+	             valores.contains(12) && valores.contains(13)) {
+			return false;
+			
+		}
+		if(valores.contains(13) && valores.size() == 5 &&
+	            valores.contains(1) && valores.contains(2) && 
+	            valores.contains(3) && !valores.contains(4)) {
+			return false;
+		}
+		
 		// Verificamos por bloques de 4 cartas consecutivas
         for (int i = 0; i < valores.size() - 3; i++) {
             if (valores.get(i) + 1 == valores.get(i + 1) &&
@@ -119,20 +138,14 @@ public class Draws {
       //caso especial escalera baja
         if ((!valores.contains(13) && valores.size() == 5 &&
             valores.contains(1) && valores.contains(2) && 
-            valores.contains(3) && valores.contains(4)) ||
-        	((valores.contains(13) && valores.size() == 5 &&
-            valores.contains(1) && valores.contains(2) && 
-            valores.contains(3) && !valores.contains(4)))){
+            valores.contains(3) && valores.contains(4))) {
             return true;
         }
 
       //caso especial escalera alta
-        if ((!valores.contains(9) && valores.size() == 5 &&
-        	valores.contains(10) && valores.contains(11) && 
-            valores.contains(12) && valores.contains(13)) ||
-            (valores.contains(9) && valores.size() == 5 &&
+        if (((valores.contains(9) && valores.size() == 5 &&
             valores.contains(10) && valores.contains(11) && 
-            valores.contains(12) && !valores.contains(13))) {
+            valores.contains(12) && !valores.contains(13)))) {
             return true; // Es un gutshot especial de As-K-Q-J-T
         }
 
