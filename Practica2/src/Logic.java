@@ -30,7 +30,7 @@ public class Logic {
             List<String> combinedCardsArray = new ArrayList<>(currentHand);
             combinedCardsArray.addAll(board);
             
-            String boardCards = String.join("", combinedCardsArray);
+            String boardCards = String.join("", board);
             String combinedCards = String.join("", combinedCardsArray);
             evaluateHand(combinedCards, handRankCounts, RangeValues, currentHandString, boardCards);
         }
@@ -92,7 +92,7 @@ public class Logic {
             int count = handRankCounts.getOrDefault(HandRank.WEAK_PAIR, 0) + 1;
             handRankCounts.put(HandRank.WEAK_PAIR, count);
             actualizarRangeValues(RangeValues, HandRank.WEAK_PAIR, currentHandString);
-        }else if (combinedCards.contains("A")) {
+        }else if (currentHandString.contains("A")) {
             int count = handRankCounts.getOrDefault(HandRank.ACE_HIGH, 0) + 1;
             handRankCounts.put(HandRank.ACE_HIGH, count);
             actualizarRangeValues(RangeValues, HandRank.ACE_HIGH, currentHandString);
@@ -204,11 +204,6 @@ public class Logic {
         return false; // No se encontró un pocket pair que cumpla con las condiciones
     }
 
-	private boolean isWeakPair(List<String> combinedCards) {
-	// TODO Auto-generated method stub
-		return false;
-    }
-
 	private void actualizarRangeValues(Map<HandRank, Map<String, Integer>> RangeValues, HandRank handRank, String combo) {
         Map<String, Integer> comboCounts = RangeValues.getOrDefault(handRank, new HashMap<>());
         comboCounts.put(combo, comboCounts.getOrDefault(combo, 0) + 1);
@@ -216,7 +211,7 @@ public class Logic {
     }
 
 
-    private List<String> generarCombinaciones(String combo, List<String> board) {
+    public List<String> generarCombinaciones(String combo, List<String> board) {
     	List<String> combinaciones = new ArrayList<>();
         String[] palos = {"h", "d", "c", "s"};
 
@@ -279,7 +274,7 @@ public class Logic {
 	    return hasTen && hasJack && hasQueen && hasKing && hasAce;
 	}
 	
-	private boolean isFlush(String cards) {
+	public boolean isFlush(String cards) {
 	    Set<Character> suits = new HashSet<>();
 
 	    // Recorrer las cartas y agregar sus palos al conjunto
@@ -293,7 +288,7 @@ public class Logic {
 
 
 
-    private boolean isStraight(String cards) {
+    public boolean isStraight(String cards) {
         // Usar un conjunto para almacenar los valores de las cartas
         Set<Integer> cardValues = new HashSet<>();
         boolean straight = false;
@@ -334,7 +329,7 @@ public class Logic {
     }
 
 
-	private int charAnum(char c) {
+	public int charAnum(char c) {
 	    int num = -1;
 	    switch (c) {
 	        case 'A': {

@@ -4,7 +4,6 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList; // Para ArrayList
-import java.util.List; // Para List
 
 public class BoardCardSelector {
     private JPanel panel;
