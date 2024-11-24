@@ -9,12 +9,15 @@ import java.util.Collections;
 import java.util.List;
 
 public class MesaPoker extends JFrame {
-    private Map<String, String> cartaImagenMap;
+	private Map<String, String> cartaImagenMap;
     private List<String> cartasDisponibles;
-    private List<String> cartasBoardActuales; // Lista para almacenar las cartas actuales del board
+    private List<String> cartasBoardActuales;
     private BoardPanel boardPanel;
-    private int faseBoard = 0; // Indica la fase actual del board (0, 3, 4, 5)
-    private Map<Integer, String[]> manosJugadores; // Almacena las manos de los jugadores
+    private int faseBoard = 0;
+    private Map<Integer, String[]> manosJugadores;
+    private Map<Integer, Jugador> panelesJugadores; // Nuevo mapa
+    private JTextField cartaInput;
+    private JButton agregarCartaButton;
 
     public MesaPoker() {
         setTitle("Mesa de Poker");
@@ -25,15 +28,16 @@ public class MesaPoker extends JFrame {
         inicializarMapaCartas();
         inicializarCartasDisponibles();
         cartasBoardActuales = new ArrayList<>();
-        manosJugadores = new HashMap<>(); // Inicializa el mapa de manos
+        manosJugadores = new HashMap<>();
+        panelesJugadores = new HashMap<>(); // Inicializar mapa de paneles de jugadores
 
         boardPanel = new BoardPanel();
-        
+
         int panelWidth = 300;
         int panelHeight = 80;
         int x = (getWidth() - panelWidth) / 2;
         int y = (getHeight() - panelHeight) / 2 - 50;
-        
+
         boardPanel.setBounds(x, y, panelWidth, panelHeight);
         add(boardPanel);
 
@@ -42,24 +46,35 @@ public class MesaPoker extends JFrame {
         nextButton.addActionListener(e -> avanzarFaseBoard());
         add(nextButton);
 
+        cartaInput = new JTextField(5);
+        agregarCartaButton = new JButton("Agregar Carta");
+        cartaInput.setBounds(x + 90, y + 135, 120, 30);
+        agregarCartaButton.setBounds(x + 90, y + 165, 120, 30);
+        agregarCartaButton.addActionListener(e -> agregarCartaManualmente());
+        add(cartaInput);
+        add(agregarCartaButton);
+
         int[][] playerPositions = {
-            {100, 100}, {600, 100}, {50, 250}, {650, 250}, {100, 400}, {600, 400}
+            {110, 10}, {540, 10}, {35, 185}, {620, 185}, {110, 365}, {540, 365}
         };
 
         for (int i = 0; i < 6; i++) {
             String[] cartasJugador = seleccionarCartasAleatorias();
-            manosJugadores.put(i + 1, cartasJugador); // Guardar las cartas del jugador
+            manosJugadores.put(i + 1, cartasJugador);
             Jugador jugador = new Jugador(i + 1, cartaImagenMap, cartasJugador);
-            jugador.setBounds(playerPositions[i][0], playerPositions[i][1], 150, 150);
+            jugador.setBounds(playerPositions[i][0], playerPositions[i][1], 150, 180);
+            panelesJugadores.put(i + 1, jugador); // Guardar referencia al panel del jugador
             add(jugador);
         }
+
+        actualizarProbabilidades(new ArrayList<>(), manosJugadores, generarBarajaDisponible());
     }
-    
+
     private void inicializarCartasDisponibles() {
         cartasDisponibles = new ArrayList<>(cartaImagenMap.keySet());
         Collections.shuffle(cartasDisponibles);
     }
-    
+
     private String[] seleccionarCartasAleatorias() {
         String carta1 = cartasDisponibles.remove(0);
         String carta2 = cartasDisponibles.remove(0);
@@ -68,54 +83,67 @@ public class MesaPoker extends JFrame {
 
     private void avanzarFaseBoard() {
         if (faseBoard == 0) {
-            actualizarCartasBoard(3); // Inicializa con 3 cartas
+            actualizarCartasBoard(3);
             faseBoard = 3;
         } else if (faseBoard == 3) {
-            actualizarCartasBoard(4); // Agrega una carta más
+            actualizarCartasBoard(4);
             faseBoard = 4;
         } else if (faseBoard == 4) {
-            actualizarCartasBoard(5); // Completa con 5 cartas
+            actualizarCartasBoard(5);
             faseBoard = 5;
         }
-     // Calcular probabilidades después de actualizar el board
-        actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
     }
-    
-    private void actualizarCartasBoard(int numCartas) {
-        if (boardPanel == null) {
-            System.out.println("Error: boardPanel es null en actualizarCartasBoard");
-            return;
-        }
 
+    private void actualizarCartasBoard(int numCartas) {
         while (cartasBoardActuales.size() < numCartas && !cartasDisponibles.isEmpty()) {
             String cartaNueva = cartasDisponibles.remove(0);
             cartasBoardActuales.add(cartaNueva);
-            System.out.println("Carta añadida al board: " + cartaNueva);
         }
-        
+
         boardPanel.mostrarCartas(cartasBoardActuales, cartaImagenMap);
+        actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
     }
 
     private List<String> generarBarajaDisponible() {
-        // Crear una copia de las cartas disponibles excluyendo las usadas
         List<String> baraja = new ArrayList<>(cartasDisponibles);
-        baraja.removeAll(cartasBoardActuales); // Excluir cartas del board
+        baraja.removeAll(cartasBoardActuales);
         for (String[] mano : manosJugadores.values()) {
-            Collections.addAll(baraja, mano); // Excluir cartas de jugadores
+            Collections.addAll(baraja, mano);
         }
         return baraja;
     }
 
     private void actualizarProbabilidades(List<String> cartasComunitarias, Map<Integer, String[]> manosJugadores, List<String> baraja) {
-        Map<Integer, Double> probabilidades = ProbabilidadPoker.calcularProbabilidad(
-                manosJugadores, cartasComunitarias, baraja
-        );
+        Map<Integer, Double> probabilidades = ProbabilidadPoker.calcularProbabilidad(manosJugadores, cartasComunitarias, baraja);
 
         for (Map.Entry<Integer, String[]> jugador : manosJugadores.entrySet()) {
             int jugadorId = jugador.getKey();
             double probabilidad = probabilidades.getOrDefault(jugadorId, 0.0);
-            System.out.println("Jugador " + jugadorId + ": " + probabilidad + "% de ganar.");
+            Jugador jugadorPanel = panelesJugadores.get(jugadorId);
+            if (jugadorPanel != null) {
+                jugadorPanel.actualizarProbabilidad(probabilidad);
+            }
         }
+    }
+
+
+    private void agregarCartaManualmente() {
+        String carta = cartaInput.getText().trim();
+
+        if (!cartaImagenMap.containsKey(carta)) {
+            JOptionPane.showMessageDialog(this, "Carta inválida. Intenta nuevamente.");
+            return;
+        }
+
+        if (cartasBoardActuales.contains(carta) || !cartasDisponibles.remove(carta)) {
+            JOptionPane.showMessageDialog(this, "Carta ya en uso o no disponible.");
+            return;
+        }
+
+        cartasBoardActuales.add(carta);
+        boardPanel.mostrarCartas(cartasBoardActuales, cartaImagenMap);
+        actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
+        cartaInput.setText("");
     }
 
     private void inicializarMapaCartas() {
