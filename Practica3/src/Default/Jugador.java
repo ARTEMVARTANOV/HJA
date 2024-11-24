@@ -11,6 +11,7 @@ public class Jugador extends JPanel {
 	private JTextField entradaCartas;
 	private CartaPanel carta1Panel;
 	private CartaPanel carta2Panel;
+	private JLabel labelProbabilidad; // Etiqueta para la probabilidad
     private Map<String, String> cartaImagenMap;
 
     public Jugador(int numeroJugador, Map<String, String> cartaImagenMap, String[] cartasIniciales) {
@@ -26,6 +27,10 @@ public class Jugador extends JPanel {
         // Etiqueta para el número del jugador
         JLabel jugadorLabel = new JLabel("Jugador " + numeroJugador + ":");
         add(jugadorLabel);
+        
+        // Etiqueta para mostrar la probabilidad
+        labelProbabilidad = new JLabel("Probabilidad: 0%", SwingConstants.CENTER);
+        add(labelProbabilidad);
 
         // Campo de texto para ingresar las cartas
         entradaCartas = new JTextField(10);
@@ -49,6 +54,11 @@ public class Jugador extends JPanel {
         String rutaCarta2 = cartaImagenMap.get(cartasIniciales[1]);
         carta1Panel.setImage(rutaCarta1);
         carta2Panel.setImage(rutaCarta2);
+    }
+    
+    // Método para actualizar la probabilidad mostrada gráficamente
+    public void actualizarProbabilidad(double probabilidad) {
+        labelProbabilidad.setText(String.format("Probabilidad: %.2f%%", probabilidad));
     }
 
     private void actualizarCartas() {

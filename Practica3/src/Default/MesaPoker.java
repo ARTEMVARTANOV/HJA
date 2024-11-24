@@ -14,6 +14,7 @@ public class MesaPoker extends JFrame {
     private List<String> cartasBoardActuales; // Lista para almacenar las cartas actuales del board
     private BoardPanel boardPanel;
     private int faseBoard = 0; // Indica la fase actual del board (0, 3, 4, 5)
+    private Map<Integer, String[]> manosJugadores; // Almacena las manos de los jugadores
 
     public MesaPoker() {
         setTitle("Mesa de Poker");
@@ -23,11 +24,11 @@ public class MesaPoker extends JFrame {
 
         inicializarMapaCartas();
         inicializarCartasDisponibles();
-        cartasBoardActuales = new ArrayList<>(); // Inicializa la lista de cartas del board
+        cartasBoardActuales = new ArrayList<>();
+        manosJugadores = new HashMap<>(); // Inicializa el mapa de manos
 
         boardPanel = new BoardPanel();
         
-        // Centrar el boardPanel en la ventana
         int panelWidth = 300;
         int panelHeight = 80;
         int x = (getWidth() - panelWidth) / 2;
@@ -36,7 +37,6 @@ public class MesaPoker extends JFrame {
         boardPanel.setBounds(x, y, panelWidth, panelHeight);
         add(boardPanel);
 
-        // Botón "Next" para avanzar en las fases del board
         JButton nextButton = new JButton("Next");
         nextButton.setBounds(x + 100, y + 100, 100, 30);
         nextButton.addActionListener(e -> avanzarFaseBoard());
@@ -48,6 +48,7 @@ public class MesaPoker extends JFrame {
 
         for (int i = 0; i < 6; i++) {
             String[] cartasJugador = seleccionarCartasAleatorias();
+            manosJugadores.put(i + 1, cartasJugador); // Guardar las cartas del jugador
             Jugador jugador = new Jugador(i + 1, cartaImagenMap, cartasJugador);
             jugador.setBounds(playerPositions[i][0], playerPositions[i][1], 150, 150);
             add(jugador);
@@ -76,6 +77,8 @@ public class MesaPoker extends JFrame {
             actualizarCartasBoard(5); // Completa con 5 cartas
             faseBoard = 5;
         }
+     // Calcular probabilidades después de actualizar el board
+        actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
     }
     
     private void actualizarCartasBoard(int numCartas) {
@@ -84,15 +87,35 @@ public class MesaPoker extends JFrame {
             return;
         }
 
-        // Añadir solo las cartas adicionales que faltan
         while (cartasBoardActuales.size() < numCartas && !cartasDisponibles.isEmpty()) {
             String cartaNueva = cartasDisponibles.remove(0);
-            cartasBoardActuales.add(cartaNueva); // Agregar la nueva carta a la lista actual
+            cartasBoardActuales.add(cartaNueva);
             System.out.println("Carta añadida al board: " + cartaNueva);
         }
         
-        // Mostrar todas las cartas actuales en el board
         boardPanel.mostrarCartas(cartasBoardActuales, cartaImagenMap);
+    }
+
+    private List<String> generarBarajaDisponible() {
+        // Crear una copia de las cartas disponibles excluyendo las usadas
+        List<String> baraja = new ArrayList<>(cartasDisponibles);
+        baraja.removeAll(cartasBoardActuales); // Excluir cartas del board
+        for (String[] mano : manosJugadores.values()) {
+            Collections.addAll(baraja, mano); // Excluir cartas de jugadores
+        }
+        return baraja;
+    }
+
+    private void actualizarProbabilidades(List<String> cartasComunitarias, Map<Integer, String[]> manosJugadores, List<String> baraja) {
+        Map<Integer, Double> probabilidades = ProbabilidadPoker.calcularProbabilidad(
+                manosJugadores, cartasComunitarias, baraja
+        );
+
+        for (Map.Entry<Integer, String[]> jugador : manosJugadores.entrySet()) {
+            int jugadorId = jugador.getKey();
+            double probabilidad = probabilidades.getOrDefault(jugadorId, 0.0);
+            System.out.println("Jugador " + jugadorId + ": " + probabilidad + "% de ganar.");
+        }
     }
 
     private void inicializarMapaCartas() {
@@ -177,6 +200,8 @@ public class MesaPoker extends JFrame {
         cartaImagenMap.put("2c", "images/2c.png");
     }
 
+
+    
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             MesaPoker mesa = new MesaPoker();
