@@ -60,6 +60,15 @@ public class Carta {
                 default: return "?"; // En caso de valor no reconocido
             }
         }
+        
+        // Método estático para convertir una representación String en una instancia de Carta
+        public static Carta fromString(String representacion) {
+            if (representacion == null || representacion.length() != 2) {
+                throw new IllegalArgumentException("Representación inválida de carta: " + representacion);
+            }
+            return new Carta(representacion);
+        }
+
 
         @Override
         public String toString() {

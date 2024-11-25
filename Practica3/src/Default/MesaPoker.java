@@ -127,6 +127,7 @@ public class MesaPoker extends JFrame {
     }
 
 
+
     private void agregarCartaManualmente() {
         String carta = cartaInput.getText().trim();
 
