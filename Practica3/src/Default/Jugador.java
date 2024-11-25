@@ -9,18 +9,23 @@ import javax.imageio.ImageIO;
 
 public class Jugador extends JPanel {
 	private JTextField entradaCartas;
+	private JButton foldButton;
+    private boolean enJuego;
 	private CartaPanel carta1Panel;
 	private CartaPanel carta2Panel;
+	private Runnable onFoldCallback;
 	private JLabel labelProbabilidad; // Etiqueta para la probabilidad
     private Map<String, String> cartaImagenMap;
 
-    public Jugador(int numeroJugador, Map<String, String> cartaImagenMap, String[] cartasIniciales) {
+    public Jugador(int numeroJugador, Map<String, String> cartaImagenMap, String[] cartasIniciales, Runnable onFoldCallback) {
         this(numeroJugador, cartaImagenMap); // Llama al constructor original
+        this.onFoldCallback = onFoldCallback;
         setCartasIniciales(cartasIniciales);
     }
     
     public Jugador(int numeroJugador, Map<String, String> cartaImagenMap) {
         this.cartaImagenMap = cartaImagenMap;
+        this.enJuego = true; // Por defecto, todos los jugadores están en juego
         setBackground(new Color(200, 200, 200));
         setLayout(new FlowLayout());
 
@@ -31,6 +36,11 @@ public class Jugador extends JPanel {
         // Etiqueta para mostrar la probabilidad
         labelProbabilidad = new JLabel("Probabilidad: 0%", SwingConstants.CENTER);
         add(labelProbabilidad);
+        
+        foldButton = new JButton("Fold");
+        foldButton.addActionListener(e -> hacerFold()); // Evento del botón
+        add(foldButton);
+        
 
         // Campo de texto para ingresar las cartas
         entradaCartas = new JTextField(10);
@@ -56,9 +66,24 @@ public class Jugador extends JPanel {
         carta2Panel.setImage(rutaCarta2);
     }
     
+    public boolean estaEnJuego() {
+        return enJuego;
+    }
+
+    private void hacerFold() {
+        enJuego = false; // Marca que este jugador no está en juego
+        labelProbabilidad.setText("Folded");
+        foldButton.setEnabled(false); // Desactiva el botón
+        if (onFoldCallback != null) {
+            onFoldCallback.run();
+        }
+    }
+    
     // Método para actualizar la probabilidad mostrada gráficamente
     public void actualizarProbabilidad(double probabilidad) {
-        labelProbabilidad.setText(String.format("Probabilidad: %.2f%%", probabilidad));
+    	if (enJuego) {
+    		labelProbabilidad.setText(String.format("Probabilidad: %.2f%%", probabilidad));
+    	}
     }
 
     private void actualizarCartas() {
@@ -88,7 +113,6 @@ public class Jugador extends JPanel {
 
 
 }
-
 
 
 

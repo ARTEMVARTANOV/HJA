@@ -18,6 +18,8 @@ public class MesaPoker extends JFrame {
     private Map<Integer, Jugador> panelesJugadores; // Nuevo mapa
     private JTextField cartaInput;
     private JButton agregarCartaButton;
+    private Map<Integer, Boolean> jugadoresActivos;
+
 
     public MesaPoker() {
         setTitle("Mesa de Poker");
@@ -53,17 +55,28 @@ public class MesaPoker extends JFrame {
         agregarCartaButton.addActionListener(e -> agregarCartaManualmente());
         add(cartaInput);
         add(agregarCartaButton);
+        
+        jugadoresActivos = new HashMap<>();
+        for (int i = 1; i <= 6; i++) {
+            jugadoresActivos.put(i, true);
+        }
 
         int[][] playerPositions = {
-            {110, 10}, {540, 10}, {35, 185}, {620, 185}, {110, 365}, {540, 365}
+            {110, 1}, {540, 1}, {35, 185}, {620, 185}, {110, 370}, {540, 370}
         };
 
         for (int i = 0; i < 6; i++) {
             String[] cartasJugador = seleccionarCartasAleatorias();
             manosJugadores.put(i + 1, cartasJugador);
-            Jugador jugador = new Jugador(i + 1, cartaImagenMap, cartasJugador);
+
+            final int jugadorId = i + 1;
+            Jugador jugador = new Jugador(jugadorId, cartaImagenMap, cartasJugador, () -> {
+                jugadoresActivos.put(jugadorId, false); // Marca al jugador como retirado
+                actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
+            });
+
             jugador.setBounds(playerPositions[i][0], playerPositions[i][1], 150, 180);
-            panelesJugadores.put(i + 1, jugador); // Guardar referencia al panel del jugador
+            panelesJugadores.put(jugadorId, jugador); // Guarda referencia al panel del jugador
             add(jugador);
         }
 
@@ -114,7 +127,14 @@ public class MesaPoker extends JFrame {
     }
 
     private void actualizarProbabilidades(List<String> cartasComunitarias, Map<Integer, String[]> manosJugadores, List<String> baraja) {
-        Map<Integer, Double> probabilidades = ProbabilidadPoker.calcularProbabilidad(manosJugadores, cartasComunitarias, baraja);
+        Map<Integer, String[]> manosActivas = new HashMap<>();
+        for (Map.Entry<Integer, String[]> entrada : manosJugadores.entrySet()) {
+            if (jugadoresActivos.getOrDefault(entrada.getKey(), false)) {
+                manosActivas.put(entrada.getKey(), entrada.getValue());
+            }
+        }
+
+        Map<Integer, Double> probabilidades = ProbabilidadPoker.calcularProbabilidad(manosActivas, cartasComunitarias, baraja);
 
         for (Map.Entry<Integer, String[]> jugador : manosJugadores.entrySet()) {
             int jugadorId = jugador.getKey();
@@ -125,6 +145,7 @@ public class MesaPoker extends JFrame {
             }
         }
     }
+
 
 
 
@@ -238,6 +259,5 @@ public class MesaPoker extends JFrame {
         });
     }
 }
-
 
 

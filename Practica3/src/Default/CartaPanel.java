@@ -38,4 +38,3 @@ public class CartaPanel extends JPanel {
 
 }
 
-

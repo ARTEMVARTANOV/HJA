@@ -68,6 +68,16 @@ public class Carta {
             }
             return new Carta(representacion);
         }
+        
+        public int getIndicePalo() {
+            switch (palo) {
+                case 'h': return 0; // Corazones
+                case 'd': return 1; // Diamantes
+                case 'c': return 2; // Tréboles
+                case 's': return 3; // Picas
+                default: throw new IllegalArgumentException("Palo desconocido: " + palo);
+            }
+        }
 
 
         @Override
