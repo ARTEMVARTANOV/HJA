@@ -110,6 +110,18 @@ public class Jugador extends JPanel {
             JOptionPane.showMessageDialog(this, "Por favor, ingrese 2 cartas separadas por una coma.");
         }
     }
+    
+    public void actualizarCartas(String[] cartas, Map<String, String> cartaImagenMap) {
+        if (cartas.length >= 2) {
+            String rutaCarta1 = cartaImagenMap.get(cartas[0].trim());
+            String rutaCarta2 = cartaImagenMap.get(cartas[1].trim());
+            if (rutaCarta1 != null && rutaCarta2 != null) {
+                carta1Panel.setImage(rutaCarta1);
+                carta2Panel.setImage(rutaCarta2);
+            }
+        }
+    }
+
 
 
 }

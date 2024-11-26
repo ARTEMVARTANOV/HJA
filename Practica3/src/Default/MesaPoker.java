@@ -19,6 +19,7 @@ public class MesaPoker extends JFrame {
     private JTextField cartaInput;
     private JButton agregarCartaButton;
     private Map<Integer, Boolean> jugadoresActivos;
+    private String modalidad = "Texas Hold'em";
 
 
     public MesaPoker() {
@@ -26,6 +27,19 @@ public class MesaPoker extends JFrame {
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
+        
+        // Selector de modalidad
+        JLabel modalidadLabel = new JLabel("Modalidad:");
+        modalidadLabel.setBounds(290, 10, 200, 30);
+        add(modalidadLabel);
+
+        JComboBox<String> modalidadSelector = new JComboBox<>(new String[]{"Texas Hold'em", "Omaha"});
+        modalidadSelector.setBounds(360, 10, 150, 30);
+        modalidadSelector.addActionListener(e -> {
+            modalidad = (String) modalidadSelector.getSelectedItem();
+            reiniciarMesa();
+        });
+        add(modalidadSelector);
 
         inicializarMapaCartas();
         inicializarCartasDisponibles();
@@ -64,9 +78,12 @@ public class MesaPoker extends JFrame {
         int[][] playerPositions = {
             {110, 1}, {540, 1}, {35, 185}, {620, 185}, {110, 370}, {540, 370}
         };
+        
+        // Variable para definir el número de cartas por jugador según el modo
+        int cartasPorJugador = (modalidad.equals("Omaha")) ? 4 : 2;
 
         for (int i = 0; i < 6; i++) {
-            String[] cartasJugador = seleccionarCartasAleatorias();
+            String[] cartasJugador = seleccionarCartasAleatorias(cartasPorJugador);
             manosJugadores.put(i + 1, cartasJugador);
 
             final int jugadorId = i + 1;
@@ -88,11 +105,51 @@ public class MesaPoker extends JFrame {
         Collections.shuffle(cartasDisponibles);
     }
 
-    private String[] seleccionarCartasAleatorias() {
-        String carta1 = cartasDisponibles.remove(0);
-        String carta2 = cartasDisponibles.remove(0);
-        return new String[]{carta1, carta2};
+    private String[] seleccionarCartasAleatorias(int numCartas) {
+        if (cartasDisponibles.size() < numCartas) {
+            throw new IllegalStateException("No hay suficientes cartas disponibles para seleccionar.");
+        }
+        String[] cartasSeleccionadas = new String[numCartas];
+        for (int i = 0; i < numCartas; i++) {
+            cartasSeleccionadas[i] = cartasDisponibles.remove(0);
+        }
+        return cartasSeleccionadas;
     }
+
+    
+    private void reiniciarMesa() {
+        cartasDisponibles.clear();
+        inicializarCartasDisponibles();
+        cartasBoardActuales.clear();
+        manosJugadores.clear();
+
+        for (int i = 1; i <= 6; i++) {
+            String[] cartasJugador;
+            if (modalidad.equals("Texas Hold'em")) {
+                cartasJugador = seleccionarCartasAleatorias(2); // 2 cartas para Texas Hold'em
+            } else if (modalidad.equals("Omaha")) {
+                cartasJugador = seleccionarCartasAleatorias(4); // 4 cartas para Omaha
+            } else {
+                throw new IllegalStateException("Modalidad desconocida: " + modalidad);
+            }
+
+            manosJugadores.put(i, cartasJugador);
+
+            // Actualizar las cartas gráficamente para este jugador
+            if (cartasJugador.length >= 2) { // Asegúrate de que existan al menos 2 cartas
+                Jugador jugadorPanel = panelesJugadores.get(i);
+                if (jugadorPanel != null) {
+                    jugadorPanel.actualizarCartas(cartasJugador, cartaImagenMap); // Método de Jugador
+                }
+            }
+        }
+
+        actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
+        repaint();
+    }
+
+
+
 
     private void avanzarFaseBoard() {
         if (faseBoard == 0) {
@@ -127,26 +184,72 @@ public class MesaPoker extends JFrame {
     }
 
     private void actualizarProbabilidades(List<String> cartasComunitarias, Map<Integer, String[]> manosJugadores, List<String> baraja) {
-        Map<Integer, String[]> manosActivas = new HashMap<>();
-        for (Map.Entry<Integer, String[]> entrada : manosJugadores.entrySet()) {
-            if (jugadoresActivos.getOrDefault(entrada.getKey(), false)) {
-                manosActivas.put(entrada.getKey(), entrada.getValue());
+        if (modalidad.equals("Texas Hold'em")) {
+            Map<Integer, String[]> manosActivas = new HashMap<>();
+            for (Map.Entry<Integer, String[]> entrada : manosJugadores.entrySet()) {
+                if (jugadoresActivos.getOrDefault(entrada.getKey(), false)) {
+                    manosActivas.put(entrada.getKey(), entrada.getValue());
+                }
             }
-        }
 
-        Map<Integer, Double> probabilidades = ProbabilidadPoker.calcularProbabilidad(manosActivas, cartasComunitarias, baraja);
+            Map<Integer, Double> probabilidades = ProbabilidadPoker.calcularProbabilidad(manosActivas, cartasComunitarias, baraja);
 
-        for (Map.Entry<Integer, String[]> jugador : manosJugadores.entrySet()) {
-            int jugadorId = jugador.getKey();
-            double probabilidad = probabilidades.getOrDefault(jugadorId, 0.0);
-            Jugador jugadorPanel = panelesJugadores.get(jugadorId);
-            if (jugadorPanel != null) {
-                jugadorPanel.actualizarProbabilidad(probabilidad);
+            for (Map.Entry<Integer, String[]> jugador : manosJugadores.entrySet()) {
+                int jugadorId = jugador.getKey();
+                double probabilidad = probabilidades.getOrDefault(jugadorId, 0.0);
+                Jugador jugadorPanel = panelesJugadores.get(jugadorId);
+                if (jugadorPanel != null) {
+                    jugadorPanel.actualizarProbabilidad(probabilidad);
+                }
             }
+        } else if (modalidad.equals("Omaha")) {
+            // Convertir las manos y el board al formato Omaha
+            List<Carta> cartasComunitariasOmaha = convertirCartas(cartasComunitarias);
+            Map<Integer, List<Carta>> manosJugadoresOmaha = convertirManos(manosJugadores);
+
+            // Calcular probabilidades Omaha
+            List<Carta> barajaRestante = convertirCartas(baraja);
+            actualizarProbabilidadesOmaha(cartasComunitariasOmaha, manosJugadoresOmaha, barajaRestante);
         }
+    }
+    
+    private List<Carta> convertirCartas(List<String> cartas) {
+        List<Carta> resultado = new ArrayList<>();
+        for (String carta : cartas) {
+            resultado.add(new Carta(carta)); // Asume que el constructor de Carta acepta un String
+        }
+        return resultado;
+    }
+
+    private Map<Integer, List<Carta>> convertirManos(Map<Integer, String[]> manos) {
+        Map<Integer, List<Carta>> resultado = new HashMap<>();
+        for (Map.Entry<Integer, String[]> entrada : manos.entrySet()) {
+            List<Carta> mano = new ArrayList<>();
+            for (String carta : entrada.getValue()) {
+                mano.add(new Carta(carta)); // Constructor de Carta a partir de String
+            }
+            resultado.put(entrada.getKey(), mano);
+        }
+        return resultado;
     }
 
 
+
+    
+    private void actualizarProbabilidadesOmaha(List<Carta> cartasComunitarias, Map<Integer, List<Carta>> manosJugadores, List<Carta> barajaRestante) {
+    	// Calcular el equity para Omaha
+    	Map<Integer, Double> probabilidades = ProbabilidadPoker.calcularProbabilidadOmaha(manosJugadores,cartasComunitarias,barajaRestante);
+
+    	// Actualizar la interfaz gráfica con las probabilidades calculadas
+    	for (Map.Entry<Integer, Double> entrada : probabilidades.entrySet()) {
+    		int jugadorId = entrada.getKey();
+    		double probabilidad = entrada.getValue();
+    		Jugador jugadorPanel = panelesJugadores.get(jugadorId);
+    		if (jugadorPanel != null) {
+    			jugadorPanel.actualizarProbabilidad(probabilidad);
+    		}
+    	}
+    }
 
 
     private void agregarCartaManualmente() {
