@@ -45,7 +45,11 @@ public class MesaPoker extends JFrame {
         JComboBox<String> modalidadSelector = new JComboBox<>(new String[]{"Texas Hold'em", "Omaha"});
         modalidadSelector.addActionListener(e -> {
             modalidad = (String) modalidadSelector.getSelectedItem();
-            reiniciarMesa();
+            if (modalidad.equals("Omaha")) {
+                configurarParaOmaha();
+            } else {
+                reiniciarMesa(); // Texas Hold'em ya funciona con el reinicio normal
+            }
         });
 
         // Panel para el selector de modalidad (centrado encima del board)
@@ -304,6 +308,28 @@ public class MesaPoker extends JFrame {
         List<String> barajaActualizada = generarBarajaDisponible();
         actualizarProbabilidades(cartasBoardActuales, manosJugadores, barajaActualizada);
     }
+    
+    private void configurarParaOmaha() {
+        cartasDisponibles.clear();
+        inicializarCartasDisponibles();
+        cartasBoardActuales.clear();
+        manosJugadores.clear();
+
+        for (int i = 1; i <= 6; i++) {
+            String[] cartasJugador = seleccionarCartasAleatorias(4); // Seleccionar 4 cartas para Omaha
+            manosJugadores.put(i, cartasJugador);
+
+            // Actualizar gráficamente cada jugador
+            Jugador jugadorPanel = panelesJugadores.get(i);
+            if (jugadorPanel != null) {
+                jugadorPanel.configurarParaOmaha(cartasJugador, cartaImagenMap); // Método nuevo en Jugador
+            }
+        }
+
+        actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
+        repaint();
+    }
+
 
     
     private void inicializarMapaCartas() {

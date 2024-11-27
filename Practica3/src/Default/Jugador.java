@@ -14,6 +14,8 @@ public class Jugador extends JPanel {
     private boolean enJuego;
 	private CartaPanel carta1Panel;
 	private CartaPanel carta2Panel;
+	private CartaPanel carta3Panel;
+	private CartaPanel carta4Panel;
 	private Runnable onFoldCallback;
 	private JLabel labelProbabilidad; // Etiqueta para la probabilidad
     private Map<String, String> cartaImagenMap;
@@ -33,9 +35,9 @@ public class Jugador extends JPanel {
         this.enJuego = true; // Por defecto, todos los jugadores están en juego
 
         // Aumentar el tamaño del cuadrado gris
-        setPreferredSize(new Dimension(200, 300));
-        setMinimumSize(new Dimension(200, 300));
-        setMaximumSize(new Dimension(250, 350));
+        setPreferredSize(new Dimension(200, 300)); //200,300
+        setMinimumSize(new Dimension(200, 300)); //200,300
+        setMaximumSize(new Dimension(250, 350)); //250,350
 
         // Cambiar a un diseño vertical
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -63,13 +65,23 @@ public class Jugador extends JPanel {
         add(entradaCartas);
 
         // Paneles de cartas
+    
         carta1Panel = new CartaPanel();
         carta2Panel = new CartaPanel();
-        JPanel cartasPanel = new JPanel();
-        cartasPanel.setLayout(new FlowLayout());
+        carta3Panel = new CartaPanel(); // Nuevo
+        carta4Panel = new CartaPanel(); // Nuevo
+
+        // Cambiar el diseño para acomodar las 4 cartas en una fila
+        JPanel cartasPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         cartasPanel.add(carta1Panel);
         cartasPanel.add(carta2Panel);
-        add(cartasPanel);
+        cartasPanel.add(carta3Panel);
+        cartasPanel.add(carta4Panel);
+
+        // Asegurarse de que el tamaño del panel sea suficiente
+        cartasPanel.setPreferredSize(new Dimension(200, 80)); // Ajusta el tamaño según sea necesario
+        add(cartasPanel); //200,80
+
 
         // Botón para actualizar cartas
         //JButton actualizarBtn = new JButton("Actualizar");
@@ -159,6 +171,16 @@ public class Jugador extends JPanel {
     public String getEntradaCartas() {
         return entradaCartas.getText().trim(); // Devuelve el texto del campo de entrada
     }
+    
+    public void configurarParaOmaha(String[] cartas, Map<String, String> cartaImagenMap) {
+        if (cartas.length == 4) {
+            carta1Panel.setImage(cartaImagenMap.get(cartas[0]));
+            carta2Panel.setImage(cartaImagenMap.get(cartas[1]));
+            carta3Panel.setImage(cartaImagenMap.get(cartas[2]));
+            carta4Panel.setImage(cartaImagenMap.get(cartas[3]));
+        }
+    }
+
 
 
 
