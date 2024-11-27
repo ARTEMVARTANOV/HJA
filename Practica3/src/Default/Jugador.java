@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 
 public class Jugador extends JPanel {
 	private JTextField entradaCartas;
+	private int numJugador = 0;
 	private JButton foldButton;
     private boolean enJuego;
 	private CartaPanel carta1Panel;
@@ -16,47 +17,67 @@ public class Jugador extends JPanel {
 	private Runnable onFoldCallback;
 	private JLabel labelProbabilidad; // Etiqueta para la probabilidad
     private Map<String, String> cartaImagenMap;
+    private MesaPoker mesaPoker;
 
-    public Jugador(int numeroJugador, Map<String, String> cartaImagenMap, String[] cartasIniciales, Runnable onFoldCallback) {
+    public Jugador(int numeroJugador, Map<String, String> cartaImagenMap, String[] cartasIniciales, 
+    		Runnable onFoldCallback, MesaPoker mesaPoker) {
         this(numeroJugador, cartaImagenMap); // Llama al constructor original
         this.onFoldCallback = onFoldCallback;
+        this.mesaPoker = mesaPoker;
+        this.numJugador = numeroJugador;
         setCartasIniciales(cartasIniciales);
     }
     
     public Jugador(int numeroJugador, Map<String, String> cartaImagenMap) {
         this.cartaImagenMap = cartaImagenMap;
         this.enJuego = true; // Por defecto, todos los jugadores están en juego
+
+        // Aumentar el tamaño del cuadrado gris
+        setPreferredSize(new Dimension(200, 300));
+        setMinimumSize(new Dimension(200, 300));
+        setMaximumSize(new Dimension(250, 350));
+
+        // Cambiar a un diseño vertical
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBackground(new Color(200, 200, 200));
-        setLayout(new FlowLayout());
 
         // Etiqueta para el número del jugador
         JLabel jugadorLabel = new JLabel("Jugador " + numeroJugador + ":");
+        jugadorLabel.setAlignmentX(CENTER_ALIGNMENT); // Centrar el texto
         add(jugadorLabel);
-        
+
         // Etiqueta para mostrar la probabilidad
         labelProbabilidad = new JLabel("Probabilidad: 0%", SwingConstants.CENTER);
+        labelProbabilidad.setAlignmentX(CENTER_ALIGNMENT);
         add(labelProbabilidad);
-        
+
+        // Botón de Fold
         foldButton = new JButton("Fold");
-        foldButton.addActionListener(e -> hacerFold()); // Evento del botón
+        foldButton.setAlignmentX(CENTER_ALIGNMENT);
+        foldButton.addActionListener(e -> hacerFold());
         add(foldButton);
-        
 
         // Campo de texto para ingresar las cartas
         entradaCartas = new JTextField(10);
+        entradaCartas.setMaximumSize(new Dimension(150, 30)); // Ajusta el ancho del campo
         add(entradaCartas);
 
-        // Paneles de las cartas, inicializados sin imagen
+        // Paneles de cartas
         carta1Panel = new CartaPanel();
         carta2Panel = new CartaPanel();
-        add(carta1Panel);
-        add(carta2Panel);
+        JPanel cartasPanel = new JPanel();
+        cartasPanel.setLayout(new FlowLayout());
+        cartasPanel.add(carta1Panel);
+        cartasPanel.add(carta2Panel);
+        add(cartasPanel);
 
-        // Botón para actualizar las cartas
+        // Botón para actualizar cartas
         JButton actualizarBtn = new JButton("Actualizar");
+        actualizarBtn.setAlignmentX(CENTER_ALIGNMENT);
         actualizarBtn.addActionListener(e -> actualizarCartas());
         add(actualizarBtn);
     }
+
     
     private void setCartasIniciales(String[] cartasIniciales) {
         // Configura las imágenes de las cartas iniciales usando el mapa de imágenes
@@ -99,17 +120,30 @@ public class Jugador extends JPanel {
             String rutaCarta1 = cartaImagenMap.get(carta1);
             String rutaCarta2 = cartaImagenMap.get(carta2);
 
-            if (rutaCarta1 != null && rutaCarta2 != null) {
-                // Actualizar las imágenes de los paneles de cartas
-                carta1Panel.setImage(rutaCarta1);
-                carta2Panel.setImage(rutaCarta2);
+            if(mesaPoker.cartaEnDisponibles(carta1, carta2)) {
+	            if (rutaCarta1 != null && rutaCarta2 != null) {
+	                // Actualizar las imágenes de los paneles de cartas
+	                carta1Panel.setImage(rutaCarta1);
+	                carta2Panel.setImage(rutaCarta2);
+	
+	                // Notificar a la mesa que se han cambiado las cartas de este jugador
+	                String[] nuevaMano = {carta1, carta2};
+	                mesaPoker.actualizarManoJugador(numJugador, nuevaMano);
+	
+	            } else {
+	                JOptionPane.showMessageDialog(this, "Una o ambas cartas no existen. Verifica los nombres de las cartas.");
+	            }
             } else {
-                JOptionPane.showMessageDialog(this, "Una o ambas cartas no existen en el mapa. Verifica los nombres de las cartas.");
+                JOptionPane.showMessageDialog(this, "Una o ambas cartas ya se estan utilizando.");
             }
         } else {
             JOptionPane.showMessageDialog(this, "Por favor, ingrese 2 cartas separadas por una coma.");
         }
+
+        // Vaciar el campo de texto después de actualizar las cartas
+        entradaCartas.setText("");
     }
+
     
     public void actualizarCartas(String[] cartas, Map<String, String> cartaImagenMap) {
         if (cartas.length >= 2) {

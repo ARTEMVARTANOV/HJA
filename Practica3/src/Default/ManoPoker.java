@@ -3,205 +3,250 @@ package Default;
 import java.util.*;
 
 public class ManoPoker {
-	private List<Carta> cartas;
-    private String mejorMano; // Descripción de la mejor mano
-    private List<Carta> cartasMejorMano; // Cartas que forman la mejor mano
+	private String cartas = "";
 
-    public ManoPoker(List<Carta> cartas) {
-        this.cartas = cartas;
-        this.cartasMejorMano = new ArrayList<>(cartas); // Inicializamos con todas las cartas
-        this.mejorMano = evaluarMano(); // Evaluamos la mano en el constructor
-    }
-
-    public String evaluarMano() {
-        // Lógica para evaluar la mejor mano
-        if (esEscaleraColor()) {
-            mejorMano = "Straight Flush";
-        } else if (esPoker()) {
-            mejorMano = "Four of a Kind";
-        } else if (esFull()) {
-            mejorMano = "Full House";
-        } else if (esColor()) {
-            mejorMano = "Flush";
-        } else if (esEscalera()) {
-            mejorMano = "Straight";
-        } else if (esTrio()) {
-            mejorMano = "Three of a Kind";
-        } else if (esDoblePareja()) {
-            mejorMano = "Two Pair";
-        } else if (esPareja()) {
-            mejorMano = "Pair";
-        } else {
-            mejorMano = "High Card " + cartaAlta();
-        }
-
-        return mejorMano;
-    }
-
-
-    public String getCartasFormateadas() {
-        // Devuelve las cartas de la mejor mano en formato "6c7c8c9hTh"
-        StringBuilder sb = new StringBuilder();
-        for (Carta carta : cartasMejorMano) {
-            sb.append(carta.toString());
-        }
-        return sb.toString();
-    }
+    // Enumeración para las jugadas posibles
+ 	public enum HandRank {
+         ROYAL_FLUSH, STRAIGHT_FLUSH, FOUR_OF_A_KIND, FULL_HOUSE, FLUSH, 
+         STRAIGHT, THREE_OF_A_KIND, TWO_PAIR, PAIR, HIGH_CARD
+     }
     
-    public List<String> detectarDraws() {
-        List<String> draws = new ArrayList<>();
+    public ManoPoker(String mano) {
+        this.cartas = mano;
+    }
 
-        // Detectar posibles draws
-        if (!esColor() && tieneColorDraw()) {
-            draws.add("Flush Draw");
+	public Map<HandRank, String> evaluarMano() {
+		// TODO Auto-generated method stub
+		Map<HandRank, String> resultado = new HashMap<>();
+ 		String aux = "";
+ 		reorganizarStrings pokerUtils = new reorganizarStrings();
+		LogicaManoPoker logica = new LogicaManoPoker();
+ 		// Evaluar las manos
+    	if (isRoyalFlush(cartas)) {
+    		aux = logica.ordenarCartas(cartas);
+    		resultado.put(HandRank.ROYAL_FLUSH, aux);
+        } else if (isFlush(cartas) && isStraight(cartas)) {
+        	aux = logica.ordenarCartas(cartas);
+        	resultado.put(HandRank.STRAIGHT_FLUSH, aux);
+        } else if (isFourOfAKind(cartas)) {
+        	aux = pokerUtils.reorganizarFourOfAKind(cartas); 
+        	resultado.put(HandRank.FOUR_OF_A_KIND, aux);
+        } else if (isThreeOfAKind(cartas) && isPair(cartas)) {
+        	aux = pokerUtils.reorganizarFullHouse(cartas);
+        	resultado.put(HandRank.FULL_HOUSE, aux);
+        } else if (isFlush(cartas)) {
+        	aux = logica.ordenarCartas(cartas);
+        	resultado.put(HandRank.FLUSH, aux);
+        } else if (isStraight(cartas)) {
+        	aux = logica.ordenarCartas(cartas);
+        	resultado.put(HandRank.STRAIGHT, aux);
+        } else if (isThreeOfAKind(cartas)) {
+        	aux = pokerUtils.reorganizarThreeOfAKind(cartas);
+        	resultado.put(HandRank.THREE_OF_A_KIND, aux);
+        } else if (isTwoPair(cartas)) {
+        	aux = pokerUtils.reorganizarTwoPair(cartas);
+        	resultado.put(HandRank.TWO_PAIR, aux);
+        }else if (isPair(cartas)) {
+        	aux = pokerUtils.reorganizarPair(cartas);
+        	resultado.put(HandRank.PAIR, aux);
+        }else {
+        	aux = logica.ordenarCartas(cartas);
+        	resultado.put(HandRank.HIGH_CARD, aux);
         }
-        if (!esEscalera() && tieneEscaleraGutshot()) {
-            draws.add("Straight Gutshot");
-        }
-        if (!esEscalera() && tieneEscaleraAbierta()) {
-            draws.add("Straight Open-ended");
-        }
+ 		
+ 		return resultado;
+	}
 
-        return draws;
-    }
+	private boolean isRoyalFlush(String cards) {
+	    if (!isFlush(cards)) return false;
 
-    public int obtenerValor() {
-        // Asigna un valor numérico a cada tipo de mano para poder comparar
-        switch (mejorMano) {
-            case "Straight Flush": return 9;
-            case "Four of a Kind": return 8;
-            case "Full House": return 7;
-            case "Flush": return 6;
-            case "Straight": return 5;
-            case "Three of a Kind": return 4;
-            case "Two Pair": return 3;
-            case "Pair": return 2;
-            default: return 1; // High Card
-        }
-    }
+	    boolean hasTen = cards.contains("T");
+	    boolean hasJack = cards.contains("J");
+	    boolean hasQueen = cards.contains("Q");
+	    boolean hasKing = cards.contains("K");
+	    boolean hasAce = cards.contains("A");
 
-    public String getDescripcion() {
-        return mejorMano;
-    }
+	    return hasTen && hasJack && hasQueen && hasKing && hasAce;
+	}
+	
+	private boolean isFlush(String cards) {
+	    Set<Character> suits = new HashSet<>();
 
-    // Métodos auxiliares para la evaluación de la mano
-    private boolean esEscaleraColor() {
-        return esColor() && esEscalera();
-    }
+	    // Recorrer las cartas y agregar sus palos al conjunto
+	    for (int i = 1; i < cards.length(); i += 2) {
+	        char suit = cards.charAt(i); 
+	        suits.add(suit); // Agregar el palo al conjunto
+	    }
 
-    private boolean esPoker() {
-        Map<Character, Integer> conteoValores = contarValores();
-        return conteoValores.containsValue(4);
-    }
-
-    private boolean esFull() {
-        Map<Character, Integer> conteoValores = contarValores();
-        return conteoValores.containsValue(3) && conteoValores.containsValue(2);
-    }
-
-    private boolean esColor() {
-        char paloInicial = cartas.get(0).getPalo();
-        for (Carta carta : cartas) {
-            if (carta.getPalo() != paloInicial) {
-                return false;
+	    return suits.size() == 1;
+	}
+	
+	private boolean isStraight(String cards) {
+        // Usar un conjunto para almacenar los valores de las cartas
+        Set<Integer> cardValues = new HashSet<>();
+        boolean straight = false;
+        
+        for (int i = 0; i < cards.length(); i += 2) {
+            char rank = cards.charAt(i); 
+            int value = charAnum(rank); 
+            if (value != -1) {
+                cardValues.add(value); 
             }
         }
-        return true;
-    }
 
-    private boolean esEscalera() {
-        List<Integer> valores = obtenerValoresOrdenados();
-        for (int i = 0; i < valores.size() - 1; i++) {
-            if (valores.get(i) + 1 != valores.get(i + 1)) {
-                return false;
+        // Verificar si hay cinco cartas consecutivas
+        for (int i = 0; i <= 10; i++) { // Solo necesitamos verificar hasta el 10
+            boolean found = true;
+            for (int j = 0; j < 5; j++) {
+                if (!cardValues.contains(i + j)) {
+                    found = false; // Si no se encuentra una carta en la secuencia
+                    break;
+                }
+            }
+            if (found) {
+            	straight =  true; // Si encontramos una secuencia de cinco cartas
             }
         }
-        return true;
-    }
+        
+        //caso especial As como carta mas baja
+        boolean as = cards.contains("A");
+        boolean dos = cards.contains("2");
+        boolean tres = cards.contains("3");
+        boolean cuatro = cards.contains("4");
+        boolean cinco = cards.contains("5");
 
-    private boolean esTrio() {
-        Map<Character, Integer> conteoValores = contarValores();
-        return conteoValores.containsValue(3);
+        if (as && dos && tres && cuatro && cinco) straight = true;
+        
+        return straight;
+        
     }
+	
+	private boolean isFourOfAKind(String cards) {
+	    Map<Character, Integer> cardCount = new HashMap<>();
+	    
+	    // Recorremos las cartas y contamos cuántas veces aparece cada valor (ignorando el palo)
+	    for (int i = 0; i < cards.length(); i += 2) {
+	        char rank = cards.charAt(i); // Obtenemos el rango de cada carta
+	        cardCount.put(rank, cardCount.getOrDefault(rank, 0) + 1);
+	    }
+	    
+	    // Verificamos si alguna carta aparece cuatro veces
+	    for (int count : cardCount.values()) {
+	        if (count == 4) {
+	            return true;
+	        }
+	    }
+	    
+	    return false;
+	}
+	
+	private boolean isThreeOfAKind(String cards) {
+        Map<Character, Integer> cardCount = new HashMap<>();
 
-    private boolean esDoblePareja() {
-        Map<Character, Integer> conteoValores = contarValores();
-        int count = 0;
-        for (int value : conteoValores.values()) {
-            if (value == 2) count++;
+        // Contar cuántas veces aparece cada carta
+        for (int i = 0; i < cards.length(); i += 2) {
+            char rank = cards.charAt(i); // Obtenemos el rango de cada carta
+            cardCount.put(rank, cardCount.getOrDefault(rank, 0) + 1);
         }
-        return count == 2;
-    }
 
-    private boolean esPareja() {
-        Map<Character, Integer> conteoValores = contarValores();
-        return conteoValores.containsValue(2);
-    }
-    
-    private boolean tieneColorDraw() {
-        // Contar cuántas cartas hay de cada palo
-        Map<Character, Integer> conteoPalos = new HashMap<>();
-        for (Carta carta : cartas) {
-            char palo = carta.getPalo();
-            conteoPalos.put(palo, conteoPalos.getOrDefault(palo, 0) + 1);
-        }
-
-        // Verificar si hay al menos 4 cartas del mismo palo
-        for (int count : conteoPalos.values()) {
-            if (count >= 4) {
+        // Verificar si alguna carta aparece tres veces
+        for (int count : cardCount.values()) {
+            if (count == 3) {
                 return true;
             }
         }
 
         return false;
     }
-    
+	
+	private boolean isPair(String cards) {
+        Map<Character, Integer> cardCount = new HashMap<>();
 
-    private boolean tieneEscaleraAbierta() {
-        List<Integer> valores = obtenerValoresOrdenados();
-        for (int i = 0; i < valores.size() - 3; i++) {
-            if (valores.get(i) + 1 == valores.get(i + 1) && 
-                valores.get(i + 1) + 1 == valores.get(i + 2) && 
-                valores.get(i + 2) + 1 == valores.get(i + 3)) {
-                return true;
+        // Contar cuántas veces aparece cada carta
+        for (int i = 0; i < cards.length(); i += 2) {
+            char rank = cards.charAt(i); // Obtenemos el rango de cada carta
+            cardCount.put(rank, cardCount.getOrDefault(rank, 0) + 1);
+        }
+
+        // Verificar si hay al menos un par
+        for (int count : cardCount.values()) {
+            if (count == 2) {
+                return true; // Si encontramos un par, retornamos true
             }
         }
-        return false;
-    }
 
-    private boolean tieneEscaleraGutshot() {
-        List<Integer> valores = obtenerValoresOrdenados();
-        for (int i = 0; i < valores.size() - 3; i++) {
-            if ((valores.get(i) + 2 == valores.get(i + 2) && 
-                 valores.get(i + 2) + 1 == valores.get(i + 3)) || 
-                (valores.get(i) + 1 == valores.get(i + 1) && 
-                 valores.get(i + 2) == valores.get(i + 1) + 2)) {
-                return true;
+        return false; // Si no hay pares, retornamos false
+    }
+	
+	private boolean isTwoPair(String cards) {
+        Map<Character, Integer> cardCount = new HashMap<>();
+        
+        // Contar cuántas veces aparece cada carta
+        for (int i = 0; i < cards.length(); i += 2) {
+            char rank = cards.charAt(i); // Obtenemos el rango de cada carta
+            cardCount.put(rank, cardCount.getOrDefault(rank, 0) + 1);
+        }
+
+        int pairCount = 0;
+
+        // Contar cuántos pares hay
+        for (int count : cardCount.values()) {
+            if (count == 2) {
+                pairCount++;
             }
         }
-        return false;
-    }
-    private String cartaAlta() {
-        // Devuelve la carta más alta de la mano
-        List<Integer> valores = obtenerValoresOrdenados();
-        return Carta.valorAString(valores.get(valores.size() - 1));
-    }
 
-    private Map<Character, Integer> contarValores() {
-        Map<Character, Integer> conteo = new HashMap<>();
-        for (Carta carta : cartas) {
-            char valor = carta.getValor();
-            conteo.put(valor, conteo.getOrDefault(valor, 0) + 1);
-        }
-        return conteo;
+        return pairCount == 2; // Retorna true si hay dos pares
     }
-
-    List<Integer> obtenerValoresOrdenados() {
-        List<Integer> valores = new ArrayList<>();
-        for (Carta carta : cartas) {
-            valores.add(carta.getValorNumerico());
-        }
-        Collections.sort(valores);
-        return valores;
-    }
+	
+	
+	
+	public int charAnum(char c) {
+	    int num = -1;
+	    switch (c) {
+	        case 'A': {
+	            num = 13; 
+	            break;}
+	        case 'K': {
+	            num = 12; 
+	            break;}
+	        case 'Q':{
+	            num = 11;
+	            break;}
+	        case 'J':{
+	            num = 10;
+	            break;}
+	        case 'T':{
+	            num = 9;
+	            break;}
+	        case '9':{
+	            num = 8;
+	            break;}
+	        case '8':{
+	            num = 7;
+	            break;}
+	        case '7':{
+	            num = 6;
+	            break;}
+	        case '6':{
+	            num = 5;
+	            break;}
+	        case '5':{
+	            num = 4; 
+	            break;}
+	        case '4':{
+	            num = 3; 
+	            break;}
+	        case '3':{
+	            num = 2; 
+	            break;}
+	        case '2':{
+	            num = 1;
+	            break;}
+	        default:{
+	            System.out.println("Caracter no válido: " + c);
+	            break;}
+	    }
+	    return num;
+	}
 }

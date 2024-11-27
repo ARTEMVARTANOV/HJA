@@ -15,7 +15,7 @@ public class ManoOmaha {
     // Método para encontrar la mejor mano y formatear la salida
     public String formatearSalida() {
         String mejorManoDescripcion = "";
-        ManoPoker mejorManoPoker = null;
+        /*ManoPoker mejorManoPoker = null;
         
         // Generar todas las combinaciones válidas de 2 cartas del jugador y 3 cartas del board
         List<Carta[]> combinacionesJugador = generarCombinaciones(cartasJugador, 2);
@@ -51,7 +51,7 @@ public class ManoOmaha {
         // Si encontramos una mejor mano, formateamos la descripción
         if (mejorManoPoker != null) {
             mejorManoDescripcion = mejorManoPoker.getDescripcion();
-        }
+        }*/
 
         return mejorManoDescripcion;
     }

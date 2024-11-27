@@ -11,20 +11,35 @@ public class BoardPanel extends JPanel {
     public BoardPanel() {
         // Cambiar el color de fondo a un verde más oscuro
         setBackground(new Color(34, 139, 34)); // Verde oscuro agradable
-        
-        // Configurar el FlowLayout para una fila centrada con espaciado horizontal
-        setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0)); 
-        
-        // Ajustar el tamaño preferido para que quepan las cinco cartas en una fila
-        setPreferredSize(new Dimension(300, 80)); 
-        
+
+        // Usar GridBagLayout para centrar las cartas horizontal y verticalmente
+        setLayout(new GridBagLayout());
+
+        // Configurar el tamaño preferido del panel
+        setPreferredSize(new Dimension(400, 150)); // Tamaño más grande para acomodar el centrado
+
         // Inicializar cinco paneles de carta para las cartas del board
         cardPanels = new CartaPanel[5];
+        JPanel cartasPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0)); // Panel para las cartas
+
+        // Configurar fondo del sub-panel para asegurarse de que las cartas queden en el centro
+        cartasPanel.setOpaque(false);
+
         for (int i = 0; i < 5; i++) {
             cardPanels[i] = new CartaPanel();
-            cardPanels[i].setPreferredSize(new Dimension(40, 60)); // Tamaño fijo de cada carta
-            add(cardPanels[i]);
+            cardPanels[i].setPreferredSize(new Dimension(50, 70)); // Tamaño fijo de cada carta
+            cartasPanel.add(cardPanels[i]);
         }
+
+        // Usar restricciones para centrar el sub-panel en el GridBagLayout
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0; // Columna
+        gbc.gridy = 0; // Fila
+        gbc.weightx = 1; // Expandirse horizontalmente
+        gbc.weighty = 1; // Expandirse verticalmente
+        gbc.anchor = GridBagConstraints.CENTER; // Centrar horizontal y verticalmente
+        gbc.fill = GridBagConstraints.NONE; // No expandir los componentes más allá de su tamaño preferido
+        add(cartasPanel, gbc);
     }
 
     // Limpiar las cartas del board

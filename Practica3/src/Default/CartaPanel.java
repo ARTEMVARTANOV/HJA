@@ -11,7 +11,7 @@ public class CartaPanel extends JPanel {
     public CartaPanel() {
         // Iniciar sin imagen
         image = null;
-        setPreferredSize(new Dimension(40, 60)); // Tamaño estándar para la carta
+        setPreferredSize(new Dimension(50, 70)); // Tamaño estándar para la carta
     }
 
     @Override
