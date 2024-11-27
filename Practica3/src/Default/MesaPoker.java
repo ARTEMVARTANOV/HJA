@@ -447,10 +447,7 @@ public class MesaPoker extends JFrame {
         for (String carta : nuevaMano) {
             cartasDisponibles.remove(carta);
         }
-        // Volver a calcular las cartas disponibles y las probabilidades
-        List<String> barajaActualizada = generarBarajaDisponible();
-        actualizarProbabilidades(cartasBoardActuales, manosJugadores, barajaActualizada);
-
+        
         // Redibujar el tablero si es necesario
         repaint();
     }

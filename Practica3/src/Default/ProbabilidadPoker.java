@@ -3,13 +3,12 @@ package Default;
 import java.util.*;
 
 public class ProbabilidadPoker {
-	private static final int NUM_SIMULACIONES = 100000;
+	private static final int NUM_SIMULACIONES = 10000;
 
     public static Map<Integer, Double> calcularProbabilidad(Map<Integer, String[]> manosJugadores, List<String> cartasComunitarias, List<String> mazoRestante) {
-        Map<Integer, Integer> victorias = new HashMap<>();
-        int count_victorias = 0;
+    	Map<Integer, Double> victorias = new HashMap<>();
         for (int jugadorId : manosJugadores.keySet()) {
-            victorias.put(jugadorId, 0);
+            victorias.put(jugadorId, 0.0);
         }
 
         Random random = new Random();
@@ -23,7 +22,7 @@ public class ProbabilidadPoker {
             List<String> boardCompleto = new ArrayList<>(cartasComunitarias);
             while (boardCompleto.size() < 5) {
                 boardCompleto.add(mazo.remove(0));
-            }
+            } 
 
             // Evaluar manos
             Map<Integer, ManoPoker.HandRank> mejoresRanks = new HashMap<>();
@@ -41,17 +40,18 @@ public class ProbabilidadPoker {
             // Determinar el ganador de esta simulación
             List<Integer> ganadores = determinarGanador(mejoresManos, mejoresRanks);
 
+            
+            double sumadorAux = 1.0 /ganadores.size();
 	        // Incrementar las victorias para cada ganador
 	        for (Integer ganador : ganadores) {
-	            victorias.put(ganador, victorias.get(ganador) + 1);
-	            count_victorias++;
+	            victorias.put(ganador, victorias.get(ganador) + sumadorAux);
 	        }
         }
-
+        
         // Calcular probabilidades
         Map<Integer, Double> probabilidades = new HashMap<>();
-        for (Map.Entry<Integer, Integer> entrada : victorias.entrySet()) {
-            probabilidades.put(entrada.getKey(), (entrada.getValue() * 100.0) / count_victorias);
+        for (Map.Entry<Integer, Double> entrada : victorias.entrySet()) {
+            probabilidades.put(entrada.getKey(), (entrada.getValue() * 100.0) / NUM_SIMULACIONES);
         }
         return probabilidades;
     }
@@ -153,15 +153,11 @@ public class ProbabilidadPoker {
             ManoPoker.HandRank rankActual = mejoresRanks.get(jugadorId);
 
             // Si es el primer jugador o si el rango de la mano es mejor que el mejor encontrado
-            System.out.println("manoActual: " + manoActual + ", mejorMano: " + mejorMano);
             if (mejorRank == rankActual && logica.manosIguales(manoActual, mejorMano)) {
-            	System.out.println("SI");
-            	System.out.println(mejorRank);
                 ganadores.add(jugadorId);
             }
             
         }
-        System.out.println("YA");
         return ganadores;
     }
 
