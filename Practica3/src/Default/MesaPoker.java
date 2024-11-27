@@ -86,6 +86,17 @@ public class MesaPoker extends JFrame {
 	     buttonsPanel.add(agregarCartaButton);
 	     buttonsPanel.add(nextButton);
 	     add(buttonsPanel);
+	     
+	  // Botón global para actualizar todos los jugadores
+	     JButton actualizarTodosButton = new JButton("Actualizar Todos");
+	     actualizarTodosButton.addActionListener(e -> actualizarCartasTodos());
+
+	     // Panel para el botón de actualizar todos
+	     JPanel actualizarPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+	     actualizarPanel.setBounds(500, 400, 300, 40); // Ajustar la posición debajo de los otros controles
+	     actualizarPanel.add(actualizarTodosButton);
+	     add(actualizarPanel);
+
 
 
         // ===== Posicionar jugadores =====
@@ -279,6 +290,22 @@ public class MesaPoker extends JFrame {
         cartaInput.setText("");
     }
 
+    private void actualizarCartasTodos() {
+        for (Map.Entry<Integer, Jugador> entrada : panelesJugadores.entrySet()) {
+            Jugador jugador = entrada.getValue();
+
+            // Supongamos que cada jugador tiene un campo de entrada para cartas
+            String entradaTexto = jugador.getEntradaCartas(); // Método para obtener el texto del campo
+            if (entradaTexto != null && !entradaTexto.isEmpty()) {
+                jugador.actualizarCartas(); // Reutilizamos el método existente en Jugador
+            }
+        }
+        // Después de actualizar, recalculamos probabilidades
+        List<String> barajaActualizada = generarBarajaDisponible();
+        actualizarProbabilidades(cartasBoardActuales, manosJugadores, barajaActualizada);
+    }
+
+    
     private void inicializarMapaCartas() {
         cartaImagenMap = new HashMap<>();
 

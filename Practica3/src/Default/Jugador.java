@@ -72,10 +72,10 @@ public class Jugador extends JPanel {
         add(cartasPanel);
 
         // Botón para actualizar cartas
-        JButton actualizarBtn = new JButton("Actualizar");
-        actualizarBtn.setAlignmentX(CENTER_ALIGNMENT);
-        actualizarBtn.addActionListener(e -> actualizarCartas());
-        add(actualizarBtn);
+        //JButton actualizarBtn = new JButton("Actualizar");
+        //actualizarBtn.setAlignmentX(CENTER_ALIGNMENT);
+        //actualizarBtn.addActionListener(e -> actualizarCartas());
+        //add(actualizarBtn);
     }
 
     
@@ -107,7 +107,7 @@ public class Jugador extends JPanel {
     	}
     }
 
-    private void actualizarCartas() {
+    public void actualizarCartas() {
         String entrada = entradaCartas.getText().trim();
         String[] cartas = entrada.split(",");
 
@@ -155,6 +155,11 @@ public class Jugador extends JPanel {
             }
         }
     }
+    
+    public String getEntradaCartas() {
+        return entradaCartas.getText().trim(); // Devuelve el texto del campo de entrada
+    }
+
 
 
 
