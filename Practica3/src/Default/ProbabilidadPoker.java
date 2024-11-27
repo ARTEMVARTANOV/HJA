@@ -3,9 +3,10 @@ package Default;
 import java.util.*;
 
 public class ProbabilidadPoker {
-	private static final int NUM_SIMULACIONES = 10000;
+	private static final int NUM_SIMULACIONES = 100000;
 
-    public static Map<Integer, Double> calcularProbabilidad(Map<Integer, String[]> manosJugadores, List<String> cartasComunitarias, List<String> mazoRestante) {
+    public static Map<Integer, Double> calcularProbabilidad(Map<Integer, String[]> manosJugadores, 
+    		List<String> cartasComunitarias, List<String> mazoRestante, boolean omaha) {
     	Map<Integer, Double> victorias = new HashMap<>();
         for (int jugadorId : manosJugadores.keySet()) {
             victorias.put(jugadorId, 0.0);
@@ -29,11 +30,8 @@ public class ProbabilidadPoker {
             Map<Integer, String> mejoresManos = new HashMap<>();
             for (Map.Entry<Integer, String[]> jugador : manosJugadores.entrySet()) {
             	// Combinar las cartas del jugador con el board completo
-                List<String> cartasCompletas = new ArrayList<>();
-                cartasCompletas.addAll(Arrays.asList(jugador.getValue())); 
-                cartasCompletas.addAll(boardCompleto);
-                LogicaManoPoker logica = new LogicaManoPoker(cartasCompletas);
-                
+                LogicaManoPoker logica = new LogicaManoPoker(jugador.getValue(), boardCompleto, omaha);	
+
                 mejoresRanks.put(jugador.getKey(), logica.getMejorRank());
                 mejoresManos.put(jugador.getKey(), logica.getMejorMano());
             }
@@ -56,10 +54,7 @@ public class ProbabilidadPoker {
         return probabilidades;
     }
     
-    public static Map<Integer, Double> calcularProbabilidadOmaha(
-            Map<Integer, List<Carta>> manosJugadores,
-            List<Carta> cartasComunitarias,
-            List<Carta> barajaRestante) {
+    public static Map<Integer, Double> calcularProbabilidadOmaha(Map<Integer, String[]> manosActivas,List<String> cartasComunitarias,List<String> baraja) {
 
         Map<Integer, Double> equity = new HashMap<>();
         int totalSimulaciones = 0;

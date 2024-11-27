@@ -1,3 +1,4 @@
+Ejemplo Practica
 Ad,Ac
 Qh,Qd
 As,Ks
@@ -7,9 +8,16 @@ Kc,Qs
 
 Qc,6s,8c Kd Kh
 
+Ejemplo Extra
+Ks2s
+TcTd
+Th3d
+7c7d
+7h3c
+7s3h
 
 TIEMPOS EJECUCION y ERROR por NUM_SIMULACIONES:
-10000 : TIEMPO = 1 minuto 21 segundos, ERROR = 0,03% - 0,9%
+10000 : TIEMPO = 2 segundos, ERROR = 0,2% - 0,9%
 20000 : TIEMPO = 4 segundos, ERROR = 0,05% - 1.1%
 50000 : TIEMPO = 8 segundos, ERROR = 0,09% - 0,9%
 100000 : TIEMPO = 15 segundos, ERROR = 0,015% - 1%

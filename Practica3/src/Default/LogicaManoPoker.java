@@ -1,6 +1,7 @@
 package Default;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -16,12 +17,22 @@ public class LogicaManoPoker {
     private String mejorManoPosible = "";
     private reorganizarStrings auxStrings = new reorganizarStrings();
     
-    public LogicaManoPoker(List<String> boardCompleto) {
-        generarCombinacionesBoards(boardCompleto);
+    public LogicaManoPoker(String[] strings, List<String> boardCompleto, boolean omaha) {
+    	if(!omaha) {
+	    	List<String> cartasCompletas = new ArrayList<>();
+	        cartasCompletas.addAll(Arrays.asList(strings)); 
+	        cartasCompletas.addAll(boardCompleto);
+	        generarCombinacionesBoards(cartasCompletas);
+    	}
+    	else {
+    		List<String> mano = new ArrayList<>();
+    		mano.addAll(Arrays.asList(strings)); 
+    		generarCombinacionesOmaha(mano,boardCompleto);
+    	}
         buscarMejorMano();
     }
-    
-    public LogicaManoPoker() {
+
+	public LogicaManoPoker() {
 	}
 
 	public ManoPoker.HandRank getMejorRank() {
@@ -51,8 +62,36 @@ public class LogicaManoPoker {
             }
         }
     }
+    
+    private void generarCombinacionesOmaha(List<String> mano, List<String> boardCompleto) {
+        // Se generan todas las combinaciones de 2 cartas de la mano (4 cartas)
+        for (int i = 0; i < 4; i++) {
+            for (int j = i + 1; j < 4; j++) {
+                // Seleccionar 2 cartas de la mano
+                String carta1 = mano.get(i);
+                String carta2 = mano.get(j);
 
+                // Ahora, generar todas las combinaciones de 3 cartas del board (5 cartas)
+                for (int k = 0; k < 5; k++) {
+                    for (int l = k + 1; l < 5; l++) {
+                        for (int m = l + 1; m < 5; m++) {
+                            // Seleccionar 3 cartas del board
+                            String cartaBoard1 = boardCompleto.get(k);
+                            String cartaBoard2 = boardCompleto.get(l);
+                            String cartaBoard3 = boardCompleto.get(m);
 
+                            // Crear la combinación de 2 cartas de la mano y 3 cartas del board
+                            String combinacion = carta1 + carta2 + cartaBoard1 + cartaBoard2 + cartaBoard3;
+
+                            // Agregar la combinación a la lista de combinaciones
+                            combinaciones.add(combinacion);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     private void buscarMejorMano() {
 		for (String manoActual : combinaciones) {
 			ordenarCartas(manoActual);

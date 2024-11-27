@@ -82,12 +82,6 @@ public class Jugador extends JPanel {
         cartasPanel.setPreferredSize(new Dimension(200, 80)); // Ajusta el tamaño según sea necesario
         add(cartasPanel); //200,80
 
-
-        // Botón para actualizar cartas
-        //JButton actualizarBtn = new JButton("Actualizar");
-        //actualizarBtn.setAlignmentX(CENTER_ALIGNMENT);
-        //actualizarBtn.addActionListener(e -> actualizarCartas());
-        //add(actualizarBtn);
     }
 
     
@@ -171,16 +165,49 @@ public class Jugador extends JPanel {
     public String getEntradaCartas() {
         return entradaCartas.getText().trim(); // Devuelve el texto del campo de entrada
     }
-    
-    public void configurarParaOmaha(String[] cartas, Map<String, String> cartaImagenMap) {
-        if (cartas.length == 4) {
-            carta1Panel.setImage(cartaImagenMap.get(cartas[0]));
-            carta2Panel.setImage(cartaImagenMap.get(cartas[1]));
-            carta3Panel.setImage(cartaImagenMap.get(cartas[2]));
-            carta4Panel.setImage(cartaImagenMap.get(cartas[3]));
-        }
-    }
 
+
+    public void eliminarTodasLasCartas() {
+        if (carta1Panel != null) {
+            carta1Panel.setVisible(false);
+        }
+        if (carta2Panel != null) {
+            carta2Panel.setVisible(false);
+        }
+        if (carta3Panel != null) {
+            carta3Panel.setVisible(false);
+        }
+        if (carta4Panel != null) {
+            carta4Panel.setVisible(false);
+        }
+        // Opcional: restablecer otros estados gráficos o de lógica
+        revalidate();
+        repaint();
+    }
+    
+    public void reiniciarCartas(String[] cartas, Map<String, String> cartaImagenMap) {
+        eliminarTodasLasCartas(); // Limpia cualquier carta previa
+        
+        if (cartas.length >= 1 && carta1Panel != null) {
+            carta1Panel.setImage(cartaImagenMap.get(cartas[0]));
+            carta1Panel.setVisible(true);
+        }
+        if (cartas.length >= 2 && carta2Panel != null) {
+            carta2Panel.setImage(cartaImagenMap.get(cartas[1]));
+            carta2Panel.setVisible(true);
+        }
+        if (cartas.length >= 3 && carta3Panel != null) {
+            carta3Panel.setImage(cartaImagenMap.get(cartas[2]));
+            carta3Panel.setVisible(true);
+        }
+        if (cartas.length >= 4 && carta4Panel != null) {
+            carta4Panel.setImage(cartaImagenMap.get(cartas[3]));
+            carta4Panel.setVisible(true);
+        }
+
+        revalidate();
+        repaint();
+    }
 
 
 
