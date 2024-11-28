@@ -178,4 +178,19 @@ public class Jugador extends JPanel {
     private void mostrarMensaje(String mensaje) {
         JOptionPane.showMessageDialog(this, mensaje);
     }
+    
+    public void reiniciarJugador(String[] cartasIniciales) {
+        // Restablecer el estado del jugador
+        enJuego = true;
+        foldButton.setEnabled(true);
+        labelProbabilidad.setText("Probabilidad: 0%"); // Reiniciar la etiqueta de probabilidad
+
+        // Limpiar el campo de entrada
+        entradaCartas.setText("");
+        
+        // Revalidar y repintar para actualizar la interfaz
+        revalidate();
+        repaint();
+    }
+
 }

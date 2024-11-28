@@ -131,6 +131,10 @@ public class MesaPoker extends JFrame {
 
     private void reiniciarMesa() {
     	limpiarCartas();
+    	
+    	if(cont == 1)
+    		reiniciarJugadores();
+    	
         cartasDisponibles.clear();
         inicializarCartasDisponibles();
         cartasBoardActuales.clear();
@@ -318,6 +322,31 @@ public class MesaPoker extends JFrame {
             }
         }
     }
+    
+    private void reiniciarJugadores() {
+        // Iterar sobre los paneles de los jugadores y reiniciar cada jugador
+        for (Map.Entry<Integer, Jugador> entry : panelesJugadores.entrySet()) {
+            Jugador jugador = entry.getValue();
+            int jugadorId = entry.getKey();
+
+            // Obtener las cartas iniciales según la modalidad
+            int cartasPorJugador = modalidad.equals("Omaha") ? 4 : 2;
+            String[] cartasIniciales = seleccionarCartasAleatorias(cartasPorJugador);
+
+            // Actualizar las cartas del jugador y reiniciar su estado
+            manosJugadores.put(jugadorId, cartasIniciales);
+            jugador.reiniciarJugador(cartasIniciales);
+        }
+        
+        for (int i = 1; i <= 6; i++) {
+            jugadoresActivos.put(i, true);
+        }
+        
+        // Recalcular las probabilidades tras el reinicio
+        actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
+        repaint(); // Actualizar la interfaz gráfica
+    }
+
 }
 
 
