@@ -103,28 +103,55 @@ public class Jugador extends JPanel {
 
     public void actualizarCartas() {
         String[] cartas = entradaCartas.getText().trim().split(",");
-        if (cartas.length == 2) {
+        
+        // Verificar que el número de cartas es 2 (para el póker clásico) o 4 (para Omaha)
+        if (cartas.length == 2 || cartas.length == 4) {
             actualizarManoJugador(cartas);
         } else {
-            mostrarMensaje("Por favor, ingrese 2 cartas separadas por una coma.");
+            mostrarMensaje("Por favor, ingrese 2 cartas si esta en modalidad Texas Hold'em "
+            		+ "o 4 cartas si esta en modalidad Omaha separadas por una coma.");
         }
         entradaCartas.setText("");
     }
 
     private void actualizarManoJugador(String[] cartas) {
-        String carta1 = cartas[0].trim();
-        String carta2 = cartas[1].trim();
-        String rutaCarta1 = cartaImagenMap.get(carta1);
-        String rutaCarta2 = cartaImagenMap.get(carta2);
-
-        if (mesaPoker.cartaEnDisponibles(carta1, carta2) && rutaCarta1 != null && rutaCarta2 != null) {
-        	reiniciarCartas(new String[]{carta1, carta2});
-            mesaPoker.actualizarManoJugador(numJugador, new String[]{carta1, carta2});
-        } else {
-            mostrarMensaje("Una o ambas cartas no son válidas o ya están en uso.");
+        // Verificar las cartas ingresadas dependiendo de la longitud
+        if (cartas.length == 2) {
+            // Para el póker clásico (2 cartas)
+            String carta1 = cartas[0].trim();
+            String carta2 = cartas[1].trim();
+            String rutaCarta1 = cartaImagenMap.get(carta1);
+            String rutaCarta2 = cartaImagenMap.get(carta2);
+            
+            if (mesaPoker.cartaEnDisponibles(carta1) && mesaPoker.cartaEnDisponibles(carta2) && rutaCarta1 != null && rutaCarta2 != null) {
+                reiniciarCartas(new String[]{carta1, carta2});
+                mesaPoker.actualizarManoJugador(numJugador, new String[]{carta1, carta2});
+            } else {
+                mostrarMensaje("Una o ambas cartas no son válidas o ya están en uso.");
+            }
+        } else if (cartas.length == 4) {
+            // Para Omaha (4 cartas)
+            String carta1 = cartas[0].trim();
+            String carta2 = cartas[1].trim();
+            String carta3 = cartas[2].trim();
+            String carta4 = cartas[3].trim();
+            String rutaCarta1 = cartaImagenMap.get(carta1);
+            String rutaCarta2 = cartaImagenMap.get(carta2);
+            String rutaCarta3 = cartaImagenMap.get(carta3);
+            String rutaCarta4 = cartaImagenMap.get(carta4);
+            
+            if (mesaPoker.cartaEnDisponibles(carta1) && mesaPoker.cartaEnDisponibles(carta2) &&
+                mesaPoker.cartaEnDisponibles(carta3) && mesaPoker.cartaEnDisponibles(carta4) &&
+                rutaCarta1 != null && rutaCarta2 != null && rutaCarta3 != null && rutaCarta4 != null) {
+                reiniciarCartas(new String[]{carta1, carta2, carta3, carta4});
+                mesaPoker.actualizarManoJugador(numJugador, new String[]{carta1, carta2, carta3, carta4});
+            } else {
+                mostrarMensaje("Una o más cartas no son válidas o ya están en uso.");
+            }
         }
     }
 
+    
     public void reiniciarCartas(String[] cartas) {
     	eliminarTodasLasCartas();
         for (int i = 0; i < cartas.length && i < cartaPanels.length; i++) {

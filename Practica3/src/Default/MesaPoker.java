@@ -305,9 +305,9 @@ public class MesaPoker extends JFrame {
         repaint();
     }
     
-    public boolean cartaEnDisponibles(String carta1, String carta2) {
+    public boolean cartaEnDisponibles(String carta) {
         // Verifica si ambas cartas están en la lista de cartas disponibles
-        return cartasDisponibles.contains(carta1) && cartasDisponibles.contains(carta2);
+        return cartasDisponibles.contains(carta);
     }
 
     
