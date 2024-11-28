@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 public class reorganizarStrings {
-	// Método que reorganiza las cartas para el Four of a Kind
+	
+		// Método que reorganiza las cartas para el Four of a Kind
 		public String reorganizarFourOfAKind(String cartas) {
 		    // Crear 5 variables para cada carta
 		    String carta1 = cartas.substring(0, 2);

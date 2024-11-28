@@ -52,7 +52,7 @@ public class MesaPoker extends JFrame {
 
         // Panel para el selector de modalidad (centrado encima del board)
         JPanel modalidadPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        modalidadPanel.setBounds(500, 50, 300, 40); // Centrado horizontalmente
+        modalidadPanel.setBounds(500, 180, 300, 40); // Centrado horizontalmente
         modalidadPanel.add(modalidadLabel);
         modalidadPanel.add(modalidadSelector);
         add(modalidadPanel);
@@ -60,7 +60,7 @@ public class MesaPoker extends JFrame {
         // ===== Board panel =====
         boardPanel = new BoardPanel();
         boardPanel.setPreferredSize(new Dimension(600, 100));
-        boardPanel.setBounds(350, 120, 600, 150); // Centrado horizontalmente
+        boardPanel.setBounds(350, 250, 600, 150); // Centrado horizontalmente
         add(boardPanel);
 
 	     // ===== Controles para agregar carta =====
@@ -78,35 +78,36 @@ public class MesaPoker extends JFrame {
 	
 	     // Panel para el campo de texto (centrado)
 	     JPanel textPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-	     textPanel.setBounds(500, 300, 300, 40); // Centrado horizontalmente
+	     textPanel.setBounds(500, 430, 300, 40); // Mover más abajo
 	     textPanel.add(cartaInput);
 	     add(textPanel);
 	
 	     // Panel para los botones (alineados horizontalmente y centrados)
 	     JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-	     buttonsPanel.setBounds(500, 350, 300, 40); // Centrado horizontalmente y debajo del campo de texto
+	     buttonsPanel.setBounds(500, 480, 300, 40); // Mover más abajo
 	     buttonsPanel.add(agregarCartaButton);
 	     buttonsPanel.add(nextButton);
 	     add(buttonsPanel);
-	     
+	
 	     // Botón global para actualizar todos los jugadores
 	     JButton actualizarTodosButton = new JButton("Actualizar Todos");
 	     actualizarTodosButton.addActionListener(e -> actualizarCartasTodos());
-
+	
 	     // Panel para el botón de actualizar todos
 	     JPanel actualizarPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-	     actualizarPanel.setBounds(500, 400, 300, 40); // Ajustar la posición debajo de los otros controles
+	     actualizarPanel.setBounds(500, 530, 300, 40); // Mover más abajo
 	     actualizarPanel.add(actualizarTodosButton);
 	     add(actualizarPanel);
 
 
-
         // ===== Posicionar jugadores =====
         int panelWidth = 150;
-        int panelHeight = 180;
+        int panelHeight = 250;
         int[][] playerPositions = {
-            {75, 100}, {975, 100}, {50, 350}, {1000, 350}, {75, 600}, {975, 600}
-        };
+        	    {75, 50}, {1075, 50},   // Jugadores 1 y 2 (misma altura)
+        	    {50, 350}, {1100, 350},   // Jugadores 3 y 4 (aumentar distancia)
+        	    {75, 650}, {1075, 650}    // Jugadores 5 y 6 (aumentar distancia)
+        	};
 
         int cartasPorJugador = (modalidad.equals("Omaha")) ? 4 : 2;
         for (int i = 0; i < 6; i++) {
@@ -123,29 +124,11 @@ public class MesaPoker extends JFrame {
             panelesJugadores.put(jugadorId, jugador);
             add(jugador);
         }
-
+        cont = 1;
         // Actualizar probabilidades iniciales
         actualizarProbabilidades(new ArrayList<>(), manosJugadores, generarBarajaDisponible());
     }
 
-
-    private void inicializarCartasDisponibles() {
-        cartasDisponibles = new ArrayList<>(cartaImagenMap.keySet());
-    }
-
-    private String[] seleccionarCartasAleatorias(int numCartas) {
-    	Collections.shuffle(cartasDisponibles);
-        if (cartasDisponibles.size() < numCartas) {
-            throw new IllegalStateException("No hay suficientes cartas disponibles para seleccionar.");
-        }
-        String[] cartasSeleccionadas = new String[numCartas];
-        for (int i = 0; i < numCartas; i++) {
-            cartasSeleccionadas[i] = cartasDisponibles.remove(0);
-        }
-        return cartasSeleccionadas;
-    }
-
-    
     private void reiniciarMesa() {
     	limpiarCartas();
         cartasDisponibles.clear();
@@ -162,12 +145,31 @@ public class MesaPoker extends JFrame {
             // Actualizar gráficamente cada jugador
             Jugador jugadorPanel = panelesJugadores.get(i);
             if (jugadorPanel != null) {
-                jugadorPanel.reiniciarCartas(cartasJugador, cartaImagenMap); // Método en Jugador
+                jugadorPanel.reiniciarCartas(cartasJugador); // Método en Jugador
             }
         }
         
         actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
         repaint();
+    }
+
+    private void inicializarCartasDisponibles() {
+        cartasDisponibles = new ArrayList<>(cartaImagenMap.keySet());
+    }
+
+    private String[] seleccionarCartasAleatorias(int numCartas) {
+    	if(cont == 1) {
+    		Collections.shuffle(cartasDisponibles);
+    	}
+  
+        if (cartasDisponibles.size() < numCartas) {
+            throw new IllegalStateException("No hay suficientes cartas disponibles para seleccionar.");
+        }
+        String[] cartasSeleccionadas = new String[numCartas];
+        for (int i = 0; i < numCartas; i++) {
+            cartasSeleccionadas[i] = cartasDisponibles.remove(0);
+        }
+        return cartasSeleccionadas;
     }
 
 
@@ -231,19 +233,22 @@ public class MesaPoker extends JFrame {
 
 
     private void agregarCartaManualmente() {
-        String carta = cartaInput.getText().trim();
-
-        if (!cartaImagenMap.containsKey(carta)) {
-            JOptionPane.showMessageDialog(this, "Carta inválida. Intenta nuevamente.");
-            return;
+        String entrada = cartaInput.getText().trim();
+        String[] cartas = entrada.split(",");
+        
+        for(String carta : cartas) {
+	        if (!cartaImagenMap.containsKey(carta)) {
+	            JOptionPane.showMessageDialog(this, "Carta inválida. Intenta nuevamente.");
+	            return;
+	        }
+	
+	        if (cartasBoardActuales.contains(carta) || !cartasDisponibles.remove(carta)) {
+	            JOptionPane.showMessageDialog(this, "Carta ya en uso o no disponible.");
+	            return;
+	        }
+	
+	        cartasBoardActuales.add(carta);
         }
-
-        if (cartasBoardActuales.contains(carta) || !cartasDisponibles.remove(carta)) {
-            JOptionPane.showMessageDialog(this, "Carta ya en uso o no disponible.");
-            return;
-        }
-
-        cartasBoardActuales.add(carta);
         boardPanel.mostrarCartas(cartasBoardActuales, cartaImagenMap);
         actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
         cartaInput.setText("");
@@ -264,100 +269,15 @@ public class MesaPoker extends JFrame {
         actualizarProbabilidades(cartasBoardActuales, manosJugadores, barajaActualizada);
     }
 
-    
     private void inicializarMapaCartas() {
-        cartaImagenMap = new HashMap<>();
-
-        // Ases
-        cartaImagenMap.put("As", "images/As.png");
-        cartaImagenMap.put("Ah", "images/Ah.png");
-        cartaImagenMap.put("Ad", "images/Ad.png");
-        cartaImagenMap.put("Ac", "images/Ac.png");
-
-        // Reyes
-        cartaImagenMap.put("Ks", "images/Ks.png");
-        cartaImagenMap.put("Kh", "images/Kh.png");
-        cartaImagenMap.put("Kd", "images/Kd.png");
-        cartaImagenMap.put("Kc", "images/Kc.png");
-
-        // Reinas
-        cartaImagenMap.put("Qs", "images/Qs.png");
-        cartaImagenMap.put("Qh", "images/Qh.png");
-        cartaImagenMap.put("Qd", "images/Qd.png");
-        cartaImagenMap.put("Qc", "images/Qc.png");
-
-        // Jotas
-        cartaImagenMap.put("Js", "images/Js.png");
-        cartaImagenMap.put("Jh", "images/Jh.png");
-        cartaImagenMap.put("Jd", "images/Jd.png");
-        cartaImagenMap.put("Jc", "images/Jc.png");
-
-        // Dieces
-        cartaImagenMap.put("Ts", "images/Ts.png");
-        cartaImagenMap.put("Th", "images/Th.png");
-        cartaImagenMap.put("Td", "images/Td.png");
-        cartaImagenMap.put("Tc", "images/Tc.png");
-
-        // Nueves
-        cartaImagenMap.put("9s", "images/9s.png");
-        cartaImagenMap.put("9h", "images/9h.png");
-        cartaImagenMap.put("9d", "images/9d.png");
-        cartaImagenMap.put("9c", "images/9c.png");
-
-        // Ochos
-        cartaImagenMap.put("8s", "images/8s.png");
-        cartaImagenMap.put("8h", "images/8h.png");
-        cartaImagenMap.put("8d", "images/8d.png");
-        cartaImagenMap.put("8c", "images/8c.png");
-
-        // Sietes
-        cartaImagenMap.put("7s", "images/7s.png");
-        cartaImagenMap.put("7h", "images/7h.png");
-        cartaImagenMap.put("7d", "images/7d.png");
-        cartaImagenMap.put("7c", "images/7c.png");
-
-        // Seises
-        cartaImagenMap.put("6s", "images/6s.png");
-        cartaImagenMap.put("6h", "images/6h.png");
-        cartaImagenMap.put("6d", "images/6d.png");
-        cartaImagenMap.put("6c", "images/6c.png");
-
-        // Cincos
-        cartaImagenMap.put("5s", "images/5s.png");
-        cartaImagenMap.put("5h", "images/5h.png");
-        cartaImagenMap.put("5d", "images/5d.png");
-        cartaImagenMap.put("5c", "images/5c.png");
-
-        // Cuatros
-        cartaImagenMap.put("4s", "images/4s.png");
-        cartaImagenMap.put("4h", "images/4h.png");
-        cartaImagenMap.put("4d", "images/4d.png");
-        cartaImagenMap.put("4c", "images/4c.png");
-
-        // Treses
-        cartaImagenMap.put("3s", "images/3s.png");
-        cartaImagenMap.put("3h", "images/3h.png");
-        cartaImagenMap.put("3d", "images/3d.png");
-        cartaImagenMap.put("3c", "images/3c.png");
-
-        // Doses
-        cartaImagenMap.put("2s", "images/2s.png");
-        cartaImagenMap.put("2h", "images/2h.png");
-        cartaImagenMap.put("2d", "images/2d.png");
-        cartaImagenMap.put("2c", "images/2c.png");
-    }
-    
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            MesaPoker mesa = new MesaPoker();
-            mesa.setVisible(true);
-        });
-    }
-
-    public void imprimirCartasDisponibles() {
-        // Usar String.join para concatenar las cartas con un espacio entre ellas
-        String cartas = String.join(" ", cartasDisponibles);
-        System.out.println(cartas);  // Imprimir el resultado en la consola
+    	cartaImagenMap = new HashMap<>();
+        String[] palos = {"s", "h", "d", "c"};
+        String[] valores = {"A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"};
+        for (String valor : valores) {
+            for (String palo : palos) {
+            	cartaImagenMap.put(valor + palo, "images/" + valor + palo + ".png");
+            }
+        }
     }
     
     public void actualizarManoJugador(int jugadorId, String[] nuevaMano) {

@@ -3,7 +3,7 @@ package Default;
 import java.util.*;
 
 public class ProbabilidadPoker {
-	private static final int NUM_SIMULACIONES = 100000;
+	private static final int NUM_SIMULACIONES = 50000;
 
     public static Map<Integer, Double> calcularProbabilidad(Map<Integer, String[]> manosJugadores, 
     		List<String> cartasComunitarias, List<String> mazoRestante, boolean omaha) {
@@ -53,66 +53,6 @@ public class ProbabilidadPoker {
         }
         return probabilidades;
     }
-    
-    public static Map<Integer, Double> calcularProbabilidadOmaha(Map<Integer, String[]> manosActivas,List<String> cartasComunitarias,List<String> baraja) {
-
-        Map<Integer, Double> equity = new HashMap<>();
-        int totalSimulaciones = 0;
-
-        // Generar todas las combinaciones de cartas restantes para completar el board
-        /*int cartasFaltantes = 5 - cartasComunitarias.size();
-        List<Carta[]> combinacionesBoard = generarCombinaciones(barajaRestante, cartasFaltantes);
-
-        // Contadores de victorias por jugador
-        Map<Integer, Integer> victorias = new HashMap<>();
-        for (Integer jugador : manosJugadores.keySet()) {
-            victorias.put(jugador, 0);
-        }
-
-        // Simular cada combinación de cartas del board
-        for (Carta[] boardFaltante : combinacionesBoard) {
-            totalSimulaciones++;
-            List<Carta> boardCompleto = new ArrayList<>(cartasComunitarias);
-            boardCompleto.addAll(List.of(boardFaltante));
-
-            // Evaluar las mejores manos de todos los jugadores
-            int mejorValor = 0;
-            List<Integer> ganadores = new ArrayList<>();
-
-            for (Map.Entry<Integer, List<Carta>> entrada : manosJugadores.entrySet()) {
-                int jugadorId = entrada.getKey();
-                List<Carta> cartasJugador = entrada.getValue();
-
-                // Crear una ManoOmaha para evaluar la mejor mano de este jugador
-                ManoOmaha mano = new ManoOmaha(cartasJugador, boardCompleto);
-                String mejorManoDescripcion = mano.formatearSalida(); // Usa formatearSalida para obtener la mejor mano
-                ManoPoker mejorMano = new ManoPoker(cartasJugador);  // Evaluamos con ManoPoker
-                int valorMano = mejorMano.obtenerValor();
-
-                // Comparar con la mejor mano actual
-                if (valorMano > mejorValor) {
-                    mejorValor = valorMano;
-                    ganadores.clear();
-                    ganadores.add(jugadorId);
-                } else if (valorMano == mejorValor) {
-                    ganadores.add(jugadorId);
-                }
-            }
-
-            // Registrar victorias para los ganadores
-            for (int ganador : ganadores) {
-                victorias.put(ganador, victorias.get(ganador) + 1);
-            }
-        }
-
-        // Calcular el equity basado en las victorias
-        for (Map.Entry<Integer, Integer> entrada : victorias.entrySet()) {
-            equity.put(entrada.getKey(), (entrada.getValue() * 100.0) / totalSimulaciones);
-        }*/
-
-        return equity;
-    }
-
 
     private static List<Integer> determinarGanador(Map<Integer, String> mejoresManos, Map<Integer, ManoPoker.HandRank> mejoresRanks) {
         String mejorMano = null;
