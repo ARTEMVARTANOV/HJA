@@ -128,6 +128,10 @@ public class Jugador extends JPanel {
     public double getApuestaActual() {
         return apuestaActual;
     }
+    
+    public void aumentarApuesta(double cantidad) {
+        this.apuestaActual += cantidad;
+    }
 
     public void apostar(double cantidad) {
         if (cantidad <= saldo) {

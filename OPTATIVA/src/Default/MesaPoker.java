@@ -28,6 +28,9 @@ public class MesaPoker extends JFrame {
     private static final double CIEGA_GRANDE = 200;
     private int jugadorCiegaPequena = 1; // El jugador que paga la ciega pequeña
     private int jugadorCiegaGrande = 2; // El jugador que paga la ciega grande
+    private int turnoActual; // Índice del jugador actual
+    private double apuestaActual = CIEGA_PEQUENA;
+
 
     public MesaPoker() {
         setTitle("Mesa de Poker");
@@ -117,7 +120,7 @@ public class MesaPoker extends JFrame {
         int panelWidth = 150;
         int panelHeight = 250;
         int[][] playerPositions = {
-        	    {75, 50}, {1075, 650}
+        	    {75, 50}, {1075, 550}
         	};
 
         int cartasPorJugador = (modalidad.equals("Omaha")) ? 4 : 2;
@@ -138,8 +141,10 @@ public class MesaPoker extends JFrame {
         }
         cont = 1;
         // Actualizar probabilidades iniciales
+        turnoActual = jugadorCiegaPequena; // Comienza con la ciega pequeña
         actualizarProbabilidades(new ArrayList<>(), manosJugadores, generarBarajaDisponible());
         pagarCiegas();
+
     }
 
     private void reiniciarMesa() {
@@ -156,7 +161,7 @@ public class MesaPoker extends JFrame {
 
         int cartasPorJugador = modalidad.equals("Omaha") ? 4 : 2;
         
-        for (int i = 1; i <= 6; i++) {
+        for (int i = 1; i <= 2; i++) {
         	String[] cartasJugador = seleccionarCartasAleatorias(cartasPorJugador);
             manosJugadores.put(i, cartasJugador);
 
@@ -174,6 +179,137 @@ public class MesaPoker extends JFrame {
     private void inicializarCartasDisponibles() {
         cartasDisponibles = new ArrayList<>(cartaImagenMap.keySet());
     }
+    
+    private void ejecutarTurnoJugador(Jugador jugador) {
+        String[] opciones = {"Check", "Ver", "Subir", "Foldear"};
+        int eleccion = JOptionPane.showOptionDialog(
+            this,
+            "Jugador " + jugador.getId() + ": ¿Qué deseas hacer?",
+            "Turno de Apuesta",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            opciones,
+            opciones[0]
+        );
+
+        switch (eleccion) {
+            case 0: // Check
+                check(jugador);
+                break;
+            case 1: // Ver
+                ver(jugador);
+                break;
+            case 2: // Subir
+                subir(jugador);
+                break;
+            case 3: // Foldear
+                foldear(jugador);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void check(Jugador jugador) {
+        if (apuestaActual > 0) {
+            jugador.mostrarMensaje("No puedes hacer 'check'. Debes igualar la apuesta actual.");
+        } else {
+            avanzarFaseBoard();
+        }
+    }
+
+    private void ver(Jugador jugador) {
+        double cantidadPorVer = calcularCantidadPorVer(jugador);
+        if (jugador.getSaldo() >= cantidadPorVer && apuestaActual != 0) {
+            jugador.reducirSaldo(cantidadPorVer);
+            jugador.aumentarApuesta(cantidadPorVer); // Sincroniza su apuesta actual
+            actualizarBote(cantidadPorVer);
+            apuestaActual = 0;
+            pasarAlSiguienteJugador();
+        } else {
+            jugador.mostrarMensaje("Saldo insuficiente para igualar la apuesta.");
+            ejecutarTurnoJugador(jugador);
+        }
+    }
+
+    private double calcularCantidadPorVer(Jugador jugador) {
+        return Math.max(apuestaActual - jugador.getApuestaActual(), 0);
+    }
+    
+    private void subir(Jugador jugador) {
+        String cantidadStr = JOptionPane.showInputDialog("Introduce la cantidad para subir:");
+        
+        if (cantidadStr == null || cantidadStr.trim().isEmpty()) {
+            jugador.mostrarMensaje("No se ha ingresado ninguna cantidad.");
+            return; // Detenemos la ejecución si la entrada es nula o vacía
+        }
+
+        try {
+            double cantidad = Double.parseDouble(cantidadStr.trim()); // Uso de trim() para eliminar espacios adicionales
+            if (cantidad > 0 && jugador.getSaldo() >= cantidad) {
+                jugador.reducirSaldo(cantidad);
+                jugador.aumentarApuesta(cantidad);
+                apuestaActual = cantidad;
+                registrarSubida(cantidad);
+                actualizarBote(cantidad);
+                pasarAlSiguienteJugador();
+            } else {
+                jugador.mostrarMensaje("Cantidad inválida o saldo insuficiente.");
+            }
+        } catch (NumberFormatException e) {
+            jugador.mostrarMensaje("Entrada no válida. Por favor, introduce un número.");
+        }
+    }
+
+    
+    private void foldear(Jugador jugador) {
+        jugadoresActivos.put(jugador.getId(), false);
+        jugador.mostrarMensaje("Jugador " + jugador.getId() + " se retira.");
+        verificarGanador(); // Verificar si queda un solo jugador activo
+        pasarAlSiguienteJugador();
+    }
+    
+    
+    private void registrarSubida(double cantidad) {
+        apuestaActual += cantidad;
+        JOptionPane.showMessageDialog(this, "Nueva subida registrada: $" + String.format("%.2f", cantidad));
+    }
+    
+    private void pasarAlSiguienteJugador() {
+        do {
+            turnoActual = (turnoActual % 2) + 1; // Pasar al siguiente jugador en la mesa
+        } while (!jugadoresActivos.get(turnoActual)); // Saltar jugadores retirados
+
+        if (jugadoresActivos.size() != 1) {
+            ejecutarTurnoJugador(panelesJugadores.get(turnoActual)); // Ejecutar el turno del jugador activo
+        } else {
+            verificarGanador();
+        }
+    }
+    
+    private void verificarGanador() {
+        List<Integer> jugadoresRestantes = new ArrayList<>();
+        for (Map.Entry<Integer, Boolean> entry : jugadoresActivos.entrySet()) {
+            if (entry.getValue()) {
+                jugadoresRestantes.add(entry.getKey());
+            }
+        }
+        
+        if (jugadoresRestantes.size() == 1) {
+            int ganador = jugadoresRestantes.get(0);
+            mostrarGanador(ganador);
+            reiniciarRonda();
+        }
+    }
+    
+    private void mostrarGanador(int jugadorId) {
+        Jugador ganador = panelesJugadores.get(jugadorId);
+        double premio = boteTotal;
+        ganador.ganarApuesta(premio);
+        ganador.mostrarMensaje("¡El jugador " + jugadorId + " ha ganado $" + premio + "!");
+    }
+
 
     private String[] seleccionarCartasAleatorias(int numCartas) {
     	if(cont == 1) {
@@ -195,30 +331,14 @@ public class MesaPoker extends JFrame {
         boteLabel.setText("Bote: $" + String.format("%.2f", boteTotal)); // Actualizar la etiqueta
     }
     
-    private void determinarGanadorYReiniciar() {
-        // Lógica para determinar el ganador
-        int ganador = 2;// ganador
-        double premio = boteTotal; // El ganador se lleva el bote
-
-        // Asignar el bote al jugador ganador
-        Jugador jugadorGanador = panelesJugadores.get(ganador);
-        jugadorGanador.ganarApuesta(premio); // Método en Jugador para añadir el premio
-
-        // Mostrar mensaje
-        jugadorGanador.mostrarMensaje("¡El jugador " + ganador + " ha ganado $" + premio + "!");
-
-        // Reiniciar la ronda
-        reiniciarRonda();
-    }
 
     private void reiniciarRonda() {
         // Reiniciar el bote
         boteTotal = 0.0;
         boteLabel.setText("Bote: $0.00");
         
-        // Pagar las ciegas
         pagarCiegas();
-
+        
         // Reiniciar las apuestas de los jugadores
         for (Jugador jugador : panelesJugadores.values()) {
             if (jugador.getSaldo() > 0) {
@@ -229,7 +349,7 @@ public class MesaPoker extends JFrame {
             }
         }
 
-        // Continuar con la siguiente mano
+        // Continuar con la sigdeuiente mano
         reiniciarMesa();
     }
 
@@ -238,15 +358,18 @@ public class MesaPoker extends JFrame {
         if (faseBoard == 0) {
             actualizarCartasBoard(3);
             faseBoard = 3;
+            ejecutarTurnoJugador(panelesJugadores.get(turnoActual));
         } else if (faseBoard == 3) {
             actualizarCartasBoard(4);
             faseBoard = 4;
+            ejecutarTurnoJugador(panelesJugadores.get(turnoActual));
         } else if (faseBoard == 4) {
             actualizarCartasBoard(5);
             faseBoard = 5;
+            ejecutarTurnoJugador(panelesJugadores.get(turnoActual));
         } else {
         	faseBoard = 0;
-        	determinarGanadorYReiniciar();
+        	verificarGanador();
         }
     }
     
