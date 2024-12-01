@@ -61,6 +61,9 @@ public class reorganizarStrings {
 		
 		// Método que reorganiza las cartas para el Full House
 	    public String reorganizarFullHouse(String cartas) {
+	    	if (cartas == null || cartas.isEmpty() || cartas.length() < 5) {
+	            throw new IllegalArgumentException("Cartas inválidas para reorganizar un Full House.");
+	        }
 	        // Crear 5 variables para cada carta
 	        String carta1 = cartas.substring(0, 2);
 	        String carta2 = cartas.substring(2, 4); 

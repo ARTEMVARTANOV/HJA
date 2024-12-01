@@ -66,7 +66,7 @@ public class ProbabilidadPoker {
         return "igualar";
     }
 
-    private static List<Integer> determinarGanador(Map<Integer, String> mejoresManos, Map<Integer, ManoPoker.HandRank> mejoresRanks) {
+    static List<Integer> determinarGanador(Map<Integer, String> mejoresManos, Map<Integer, ManoPoker.HandRank> mejoresRanks) {
         String mejorMano = null;
         ManoPoker.HandRank mejorRank = null;
         LogicaManoPoker logica = new LogicaManoPoker();
