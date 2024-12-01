@@ -237,6 +237,8 @@ public class MesaPoker extends JFrame {
                 jugador.aumentarApuesta(cantidadPorVer);
                 actualizarBote(cantidadPorVer);
                 jugador.mostrarMensaje("Jugador " + jugador.getId() + " iguala con $" + cantidadPorVer);
+                jugador.resetApuesta();
+                apuestaActual = 0;
             } else {
                 double saldoRestante = jugador.getSaldo();
                 jugador.reducirSaldo(saldoRestante);
@@ -313,16 +315,12 @@ public class MesaPoker extends JFrame {
         } while (!jugadoresActivos.get(turnoActual));
 
         // Si las apuestas están igualadas, avanzamos la fase.
-        if (condicionesParaAvanzarFase()) {
-            avanzarFaseBoard();
-        } else {
             Jugador jugadorActual = panelesJugadores.get(turnoActual);
             if (jugadorActual.esBot()) {
                 ejecutarTurnoBot(jugadorActual);
             } else {
                 ejecutarTurnoJugador(jugadorActual);
             }
-        }
     }
 
 
@@ -345,10 +343,6 @@ public class MesaPoker extends JFrame {
     }
  
     private void ejecutarTurnoBot(Jugador bot) {
-        if (condicionesParaAvanzarFase()) {
-            avanzarFaseBoard();
-            return; // No hace falta que el bot juegue si avanzamos fase
-        }
 
         // Lógica del bot
         Map<Integer, Double> probabilidades = ProbabilidadPoker.calcularProbabilidad(manosJugadores, cartasBoardActuales, generarBarajaDisponible(), modalidad.equals("Omaha"));
@@ -499,6 +493,7 @@ public class MesaPoker extends JFrame {
         if (faseBoard == 0) {
             actualizarCartasBoard(3);
             faseBoard = 3;
+            pasarAlSiguienteJugador();
             ejecutarTurnoJugador(panelesJugadores.get(turnoActual));
         } else if (faseBoard == 3) {
             actualizarCartasBoard(4);
