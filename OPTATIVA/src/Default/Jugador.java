@@ -18,19 +18,21 @@ public class Jugador extends JPanel {
     private final Map<String, String> cartaImagenMap;
     private final Runnable onFoldCallback;
     private final MesaPoker mesaPoker;
+    private boolean esBot;
 
-    public Jugador(int numeroJugador, Map<String, String> cartaImagenMap, String[] cartasIniciales, double saldoInicial, Runnable onFoldCallback, MesaPoker mesaPoker) {
-        this(numeroJugador, cartaImagenMap, onFoldCallback, mesaPoker, saldoInicial);
+    public Jugador(int numeroJugador, Map<String, String> cartaImagenMap, String[] cartasIniciales, double saldoInicial, Runnable onFoldCallback, MesaPoker mesaPoker, boolean esBot) {
+        this(numeroJugador, cartaImagenMap, onFoldCallback, mesaPoker, saldoInicial, esBot);
         reiniciarCartas(cartasIniciales);
     }
 
-    public Jugador(int numeroJugador, Map<String, String> cartaImagenMap, Runnable onFoldCallback, MesaPoker mesaPoker, double saldoInicial) {
+    public Jugador(int numeroJugador, Map<String, String> cartaImagenMap, Runnable onFoldCallback, MesaPoker mesaPoker, double saldoInicial, boolean esBot) {
         this.numJugador = numeroJugador;
         this.cartaImagenMap = cartaImagenMap;
         this.onFoldCallback = onFoldCallback;
         this.mesaPoker = mesaPoker;
         this.saldo = saldoInicial;
         this.apuestaActual = 0;
+        this.esBot = esBot;
 
         setPreferredSize(new Dimension(200, 400));
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -129,8 +131,16 @@ public class Jugador extends JPanel {
         return apuestaActual;
     }
     
+    public double setApuestaActual(double cantidad) {
+        return apuestaActual = cantidad;
+    }
+    
     public void aumentarApuesta(double cantidad) {
         this.apuestaActual += cantidad;
+    }
+    
+    public boolean esBot() {
+        return esBot;
     }
 
     public void apostar(double cantidad) {
