@@ -3,7 +3,7 @@ package Default;
 import java.util.*;
 
 public class ProbabilidadPoker {
-	private static final int NUM_SIMULACIONES = 500;
+	private static final int NUM_SIMULACIONES = 1000;
 
     public static Map<Integer, Double> calcularProbabilidad(Map<Integer, String[]> manosJugadores, 
     		List<String> cartasComunitarias, List<String> mazoRestante, boolean omaha) {
@@ -54,17 +54,122 @@ public class ProbabilidadPoker {
         return probabilidades;
     }
     
-    public static String decidirBot(double equity, double apuestaActual, double bote, double saldoBot) {
-        double umbralRetiro = 0.3; // Se retira si la equity es menor al 30%
-        double umbralSubir = 0.7;  // Sube si la equity es mayor al 70%
+    public static double calcularValorManoBot(List<String> cartasComunitarias, String[] manoBot,
+    	List<String> mazoRestante) {
+    	double valor = 0.0;
 
-        if (equity < umbralRetiro) {
-            return "retirarse";
-        } else if (equity > umbralSubir && saldoBot > apuestaActual * 2) {
-            return "subir";
+        Random random = new Random();
+
+        for (int i = 0; i < NUM_SIMULACIONES; i++) {
+            // Copiar el mazo restante y barajar
+            List<String> mazo = new ArrayList<>(mazoRestante);
+            Collections.shuffle(mazo, random);
+
+            // Completar el board
+            List<String> boardCompleto = new ArrayList<>(cartasComunitarias);
+            while (boardCompleto.size() < 5) {
+                boardCompleto.add(mazo.remove(0));
+            } 
+
+            LogicaManoPoker logica = new LogicaManoPoker(manoBot, boardCompleto);
+            valor += anadirValor(logica);
         }
-        return "igualar";
+        
+        
+        valor = valor/1000;
+        return valor;
     }
+    
+    private static int anadirValor(LogicaManoPoker logica) {
+        ManoPoker.HandRank rank = logica.getMejorRank(); // Obtén el rango de la mano
+        String mejoresCartas = logica.getMejorMano(); // Obtén las mejores cartas
+
+        // Valores base según el rango
+        int valorBase;
+        switch (rank) {
+            case ROYAL_FLUSH:
+                valorBase = 1300;
+                break;
+            case STRAIGHT_FLUSH:
+                valorBase = 1200;
+                break;
+            case FOUR_OF_A_KIND:
+                valorBase = 1300;
+                break;
+            case FULL_HOUSE:
+                valorBase = 1100;
+                break;
+            case FLUSH:
+                valorBase = 900;
+                break;
+            case STRAIGHT:
+                valorBase = 800;
+                break;
+            case THREE_OF_A_KIND:
+                valorBase = 400;
+                break;
+            case TWO_PAIR:
+                valorBase = 300;
+                break;
+            case PAIR:
+                valorBase = 200;
+                break;
+            case HIGH_CARD:
+            default:
+                valorBase = 50;
+                break;
+        }
+
+        int valorCartas = anadirValorMano(mejoresCartas);
+
+        return valorBase + valorCartas;
+    }
+
+	private static int anadirValorMano(String mejoresCartas) {
+		// Valores base según el rango
+        int valor;
+        switch (ManoPoker.charAnum(mejoresCartas.charAt(0))) {
+            case 13:
+            	valor = 95;
+                break;
+            case 12:
+            	valor = 90;
+                break;
+            case 11:
+            	valor = 85;
+                break;
+            case 10:
+            	valor = 80;
+                break;
+            case 9:
+            	valor = 70;
+                break;
+            case 8:
+            	valor = 60;
+                break;
+            case 7:
+            	valor = 50;
+                break;
+            case 6:
+            	valor = 40;
+                break;
+            case 5:
+            	valor = 30;
+                break;
+            case 4:
+            	valor = 20;
+                break;
+            case 3:
+            	valor = 10;
+                break;
+            case 2:
+            default:
+            	valor = 5;
+                break;
+        }
+
+		return valor;
+	}
 
     static List<Integer> determinarGanador(Map<Integer, String> mejoresManos, Map<Integer, ManoPoker.HandRank> mejoresRanks) {
         String mejorMano = null;

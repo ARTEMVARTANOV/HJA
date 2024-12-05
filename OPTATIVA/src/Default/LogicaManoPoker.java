@@ -24,7 +24,12 @@ public class LogicaManoPoker {
 
     public LogicaManoPoker() {}
 
-    public ManoPoker.HandRank getMejorRank() {
+    public LogicaManoPoker(String[] manoBot, List<String> boardCompleto) {
+    	generarCombinacionesOmaha(Arrays.asList(manoBot), boardCompleto);
+    	buscarMejorMano();
+	}
+
+	public ManoPoker.HandRank getMejorRank() {
         return mejorRankPosible;
     }
 

@@ -199,9 +199,7 @@ public class ManoPoker {
         return pairCount == 2; // Retorna true si hay dos pares
     }
 	
-	
-	
-	public int charAnum(char c) {
+	public static int charAnum(char c) {
 	    int num = -1;
 	    switch (c) {
 	        case 'A': {

@@ -6,7 +6,6 @@ import java.util.Map;
 
 public class Jugador extends JPanel {
     private final JTextField entradaCartas;
-    private final JLabel labelProbabilidad;
     private final JLabel labelSaldo;
     private final CartaPanel[] cartaPanels = new CartaPanel[4];
     private final int numJugador;
@@ -14,7 +13,6 @@ public class Jugador extends JPanel {
     private double apuestaActual;
     private boolean enJuego = true;
     private final Map<String, String> cartaImagenMap;
-    private final Runnable onFoldCallback;
     private final MesaPoker mesaPoker;
     private boolean esBot;
 
@@ -26,7 +24,6 @@ public class Jugador extends JPanel {
     public Jugador(int numeroJugador, Map<String, String> cartaImagenMap, Runnable onFoldCallback, MesaPoker mesaPoker, double saldoInicial, boolean esBot) {
         this.numJugador = numeroJugador;
         this.cartaImagenMap = cartaImagenMap;
-        this.onFoldCallback = onFoldCallback;
         this.mesaPoker = mesaPoker;
         this.saldo = saldoInicial;
         this.apuestaActual = 0;
@@ -40,8 +37,6 @@ public class Jugador extends JPanel {
         panelSuperior.setBackground(new Color(200, 200, 200));  // Fondo gris
         
         panelSuperior.add(crearEtiqueta("Jugador " + numeroJugador + ":"));
-        labelProbabilidad = crearEtiqueta("Probabilidad: 0%");
-        panelSuperior.add(labelProbabilidad);
         labelSaldo = crearEtiqueta("Saldo: 1000$");
         panelSuperior.add(labelSaldo);
 
@@ -74,10 +69,16 @@ public class Jugador extends JPanel {
 
     private JPanel crearPanelCartas() {
         JPanel panelCartas = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        
         for (int i = 0; i < cartaPanels.length; i++) {
             cartaPanels[i] = new CartaPanel();
             panelCartas.add(cartaPanels[i]);
         }
+        
+        if(this.esBot == true) {
+        	ocultarCartas();
+        }
+        
         return panelCartas;
     }
 
@@ -85,24 +86,6 @@ public class Jugador extends JPanel {
         return enJuego;
     }
     
-    // Métodos de apuestas
-    
-    private void realizarApuesta() {
-        if (enJuego && saldo > 0) {
-            String input = JOptionPane.showInputDialog(this, "Introduce la cantidad a apostar:");
-            try {
-                double cantidad = Double.parseDouble(input);
-                if (cantidad > 0 && cantidad <= saldo) {
-                    apostar(cantidad);
-                    mostrarMensaje("Has apostado $" + cantidad);
-                } else {
-                    mostrarMensaje("Apuesta inválida. Asegúrate de que es un número positivo y no superior a tu saldo.");
-                }
-            } catch (NumberFormatException e) {
-                mostrarMensaje("Por favor, introduce una cantidad válida.");
-            }
-        }
-    }
     public double getSaldo() {
         return saldo;
     }
@@ -157,9 +140,9 @@ public class Jugador extends JPanel {
     }
 
     public void actualizarProbabilidad(double probabilidad) {
-        if (enJuego) {
-            labelProbabilidad.setText(String.format("Probabilidad: %.2f%%", probabilidad));
-        }
+        //if (enJuego) {
+            //labelProbabilidad.setText(String.format("Probabilidad: %.2f%%", probabilidad));
+        //}
     }
     
     public int getId() {
@@ -240,15 +223,52 @@ public class Jugador extends JPanel {
         return entradaCartas.getText().trim(); // Devuelve el texto del campo de entrada
     }
     
-    void mostrarMensaje(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje);
+    public void mostrarMensaje(String mensaje) {
+        // Crear el JOptionPane
+        JOptionPane optionPane = new JOptionPane(mensaje, JOptionPane.INFORMATION_MESSAGE);
+        JDialog dialog = optionPane.createDialog("Mensaje");
+
+        // Obtener el tamaño de la pantalla
+        java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+
+        // Calcular la posición para mostrarlo más abajo
+        int x = (int) (screenSize.getWidth() / 2 - dialog.getWidth() / 2);
+        int y = (int) (screenSize.getHeight() - dialog.getHeight() - 100); // Ajusta el margen inferior
+
+        // Establecer la ubicación personalizada
+        dialog.setLocation(x - 300, y - 775);
+        dialog.setVisible(true);
     }
     
-    public void reiniciarJugador(String[] cartasIniciales) {
+    public void descubrirCartas(String[] cartas) {
+    	for (int i = 0; i < cartas.length && i < cartaPanels.length; i++) {
+            String ruta = cartaImagenMap.get(cartas[i]);
+            if (ruta != null) {
+                cartaPanels[i].setImage(ruta);
+                cartaPanels[i].setVisible(true);
+            }
+        }
+        revalidate();
+        repaint();	
+	}
+
+    public void ocultarCartas() {
+    	for (int i = 0; i < 2 && i < cartaPanels.length; i++) {
+            String ruta = "images/cartaAlReves.png";
+            if (ruta != null) {
+                cartaPanels[i].setImage(ruta);
+                cartaPanels[i].setVisible(true);
+            }
+        }
+        revalidate();
+        repaint();
+	}
+
+	public void reiniciarJugador(String[] cartasIniciales) {
         // Restablecer el estado del jugador
         enJuego = true;
         resetApuesta();
-        labelProbabilidad.setText("Probabilidad: 0%"); // Reiniciar la etiqueta de probabilidad
+        //labelProbabilidad.setText("Probabilidad: 0%"); // Reiniciar la etiqueta de probabilidad
 
         // Limpiar el campo de entrada
         entradaCartas.setText("");

@@ -31,7 +31,8 @@ public class MesaPoker extends JFrame {
     private int contadorTurno1 = 0;
 	private  int cont = 0;
 	private  double ciegaActual = CIEGA_INICIAL;
-    
+    private double valorManoBot = 0;
+	
     public MesaPoker() {
         setTitle("Mesa de Poker");
         setSize(1300, 700);
@@ -45,6 +46,7 @@ public class MesaPoker extends JFrame {
         manosJugadores = new HashMap<>();
         panelesJugadores = new HashMap<>();
         jugadoresActivos = new HashMap<>();
+        Collections.shuffle(cartasDisponibles);
         for (int i = 1; i <= 2; i++) {
             jugadoresActivos.put(i, true);
         }
@@ -72,14 +74,14 @@ public class MesaPoker extends JFrame {
 
         // ===== Posicionar jugadores =====
         int panelWidth = 150;
-        int panelHeight = 250;
+        int panelHeight = 200;
         int[][] playerPositions = {
         	    {75, 50}, {1075, 400}
         	};
 
         int cartasPorJugador = (modalidad.equals("Omaha")) ? 4 : 2;
         double saldoInicial = 1000.0;
-        int idBot = 3;
+        int idBot = 2;
         for (int i = 0; i < 2; i++) {
             String[] cartasJugador = seleccionarCartasAleatorias(cartasPorJugador);
             manosJugadores.put(i + 1, cartasJugador);
@@ -88,7 +90,6 @@ public class MesaPoker extends JFrame {
             boolean esBot = (jugadorId == idBot); // Determina si este jugador es el bot
             Jugador jugador = new Jugador(jugadorId, cartaImagenMap, cartasJugador,saldoInicial, () -> {
                 jugadoresActivos.put(jugadorId, false);
-                actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
             }, this, esBot);
 
             jugador.setBounds(playerPositions[i][0], playerPositions[i][1], panelWidth, panelHeight);
@@ -96,15 +97,18 @@ public class MesaPoker extends JFrame {
             add(jugador);
         }
         cont = 1;
-        // Actualizar probabilidades iniciales
+        
+        Jugador bot = panelesJugadores.get(2);
         turnoActual = jugadorCiegaPequena; // Comienza con la ciega pequeña
-        actualizarProbabilidades(new ArrayList<>(), manosJugadores, generarBarajaDisponible());
+        valorManoBot = ProbabilidadPoker.calcularValorManoBot(new ArrayList<>(), manosJugadores.get(bot.getId()), generarBarajaDisponible());
+        System.out.println("Valor de la mano del bot: " + valorManoBot);
         pagarCiegas(ciegaActual);
+        //bot.ocultarCartas();
         SwingUtilities.invokeLater(() -> ejecutarTurnoJugador(panelesJugadores.get(turnoActual)));
 
     }
 
-    private void reiniciarMesa() {
+	private void reiniciarMesa() {
     	limpiarCartas();
     	boardPanel.limpiarCartas();
     	
@@ -129,7 +133,11 @@ public class MesaPoker extends JFrame {
             }
         }
         
-        actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
+        Jugador bot = panelesJugadores.get(2);
+        //bot.ocultarCartas();
+        
+        valorManoBot = ProbabilidadPoker.calcularValorManoBot(new ArrayList<>(), manosJugadores.get(bot.getId()), generarBarajaDisponible());
+        System.out.println("Valor de la mano del bot: " + valorManoBot);
         repaint();
     }
 
@@ -236,15 +244,12 @@ public class MesaPoker extends JFrame {
         } else {
             if (jugador.estaEnJuego() && apuestaTotalJug1 == apuestaTotalJug2 && contadorTurno1 != 0) {
                 avanzarFaseBoard();
-            } else {
-            	if(contadorTurno1 == 0) 
-            		contadorTurno1 = 1;
-                pasarAlSiguienteJugador();
-            }
+            } 
+            if(contadorTurno1 == 0) 
+        		contadorTurno1 = 1;
+            pasarAlSiguienteJugador();
         }
     }
-
-
 
     private void ver(Jugador jugador) {
     	boolean aux = false;
@@ -375,7 +380,8 @@ public class MesaPoker extends JFrame {
     
     private void registrarSubida(double cantidad) {
         apuestaActual = Math.max(apuestaActual, cantidad); // Mantiene la apuesta máxima actualizada.
-        JOptionPane.showMessageDialog(this, "Nueva subida registrada: $" + String.format("%.2f", cantidad));
+        Jugador bot = panelesJugadores.get(2);
+        bot.mostrarMensaje("Nueva subida registrada: $" + String.format("%.2f", cantidad));
     }
     
     private double calcularApuestaMaxima() {
@@ -389,7 +395,8 @@ public class MesaPoker extends JFrame {
     }
     
     private void iniciarModoAllIn() {
-        JOptionPane.showMessageDialog(null,"Modo all-in activado. Las rondas avanzarán automáticamente.");
+    	Jugador bot = panelesJugadores.get(2);
+        bot.mostrarMensaje("Modo all-in activado. Las rondas avanzarán automáticamente.");
         avanzarHastaRiver();
     }
     
@@ -433,64 +440,79 @@ public class MesaPoker extends JFrame {
 
     private void ejecutarTurnoBot(Jugador bot) {
         // Lógica del bot
-        Map<Integer, Double> probabilidades = ProbabilidadPoker.calcularProbabilidad(manosJugadores, cartasBoardActuales, generarBarajaDisponible(), modalidad.equals("Omaha"));
-        double equityBot = probabilidades.getOrDefault(bot.getId(), 0.0);
-        String accion = determinarAccionBot(equityBot, bot);
+        valorManoBot = ProbabilidadPoker.calcularValorManoBot(cartasBoardActuales, manosJugadores.get(bot.getId()), generarBarajaDisponible());
+        String accion = determinarAccionBot(bot);
 
         switch (accion) {
             case "Check":
-                bot.mostrarMensaje("El bot ha hecho check.");
+                bot.mostrarMensaje("El jugador 2 ha hecho check.");
                 check(bot);
                 break;
             case "Call":
-                bot.mostrarMensaje("El bot ha hecho call.");
                 ver(bot);
                 break;
             case "Raise":
-                subirBot(bot, equityBot);
+            	double cantidadBot = 0;
+            	if(valorManoBot > 550)
+            		cantidadBot = bot.getSaldo();
+            	else
+            		if(valorManoBot < 450)
+            			cantidadBot = Math.abs(apuestaTotalJug2 - apuestaTotalJug1) + 50;
+            		else if(valorManoBot > 500 && valorManoBot <= 550)
+            			cantidadBot = Math.abs(apuestaTotalJug2 - apuestaTotalJug1) + 100;
+            		else if(valorManoBot > 550 && valorManoBot <= 600)
+            			cantidadBot = Math.abs(apuestaTotalJug2 - apuestaTotalJug1) + 150;
+            		else
+            			cantidadBot = bot.getSaldo();
+            	
+                subirBot(bot, cantidadBot);
                 break;
             case "Fold":
-                bot.mostrarMensaje("El bot ha hecho fold.");
                 foldear(bot);
                 break;
         }
     }
     
-    private String determinarAccionBot(double equity, Jugador bot) {
+    private String determinarAccionBot(Jugador bot) {
         // Lógica simple basada en equity
         if(modoAllIn) {
-        	if (equity > 60) {
+        	if (valorManoBot > 450) {
                 return "Call"; // Equity muy alta, miralo
             } else {
                 return "Fold"; // Equity baja, retírate
             }
         }
         else{
-        	if(apuestaActual != bot.getApuestaActual()) {
-        		if (equity > 70) {
+        	if(apuestaTotalJug1 != apuestaTotalJug2) {
+        		if(apuestaTotalJug1 - apuestaTotalJug2 >= 300) {
+        			if (valorManoBot > 400) {
+                        return "Raise"; // Equity muy alta, sube
+                    } else if (valorManoBot < 280) {
+                        return "Fold"; // Equity baja, retírate
+                    } else
+                    	return "Call";
+        		}if (valorManoBot > 400) {
                     return "Raise"; // Equity muy alta, sube
-                } else if (equity < 20) {
+                } else if (valorManoBot < 280) {
                     return "Fold"; // Equity baja, retírate
                 } else
                 	return "Call";
-                			
-        	}else if (equity > 70) {
+        		
+        	}else if (valorManoBot > 400) {
                 return "Raise"; // Equity muy alta, sube
-            } else if (equity < 20) {
+            } else if (valorManoBot < 280) {
                 return "Fold"; // Equity baja, retírate
             } else
             	return "Check";
         }
     }
 
-    private void subirBot(Jugador bot, double equity) {
+    private void subirBot(Jugador bot, double cantidadSubida) {
     	if(modoAllIn) {
     		bot.mostrarMensaje("Con un All-In solo se puede Ver o Foldear.");
             ejecutarTurnoJugador(bot);
         }
     	boolean aux = false;
-        double cantidadSubida = equity / 100 * bot.getSaldo(); // Subir un porcentaje del saldo basado en equity
-
         if (cantidadSubida > apuestaActual) {
             if (bot.getSaldo() >= cantidadSubida) {
             	
@@ -622,6 +644,8 @@ public class MesaPoker extends JFrame {
         Jugador ganador = panelesJugadores.get(jugadorId);
         double premio = boteTotal;
         ganador.ganarApuesta(premio);
+        Jugador bot = panelesJugadores.get(2);
+        bot.descubrirCartas(manosJugadores.get(2));
         ganador.mostrarMensaje("¡El jugador " + jugadorId + " ha ganado $" + premio + " con la mejor mano!");
     }
 
@@ -653,7 +677,7 @@ public class MesaPoker extends JFrame {
         boteTotal = 0.0;
         boteLabel.setText("Bote: $0.00");
         
-        ciegaActual += 50; 
+        ciegaActual += 25; 
         
         if(jugadorCiegaPequena == 1) {
         	apuestaTotalJug1 = ciegaActual;
@@ -708,14 +732,17 @@ public class MesaPoker extends JFrame {
         if (faseBoard == 0) {
             actualizarCartasBoard(3);
             faseBoard = 3;
+            System.out.println("Valor de la mano del bot: " + valorManoBot);
             pasarAlJugadorBB();
         } else if (faseBoard == 3) {
             actualizarCartasBoard(4);
             faseBoard = 4;
+            System.out.println("Valor de la mano del bot: " + valorManoBot);
             pasarAlJugadorBB();
         } else if (faseBoard == 4) {
             actualizarCartasBoard(5);
             faseBoard = 5;
+            System.out.println("Valor de la mano del bot: " + valorManoBot);
             pasarAlJugadorBB();
         } else {
         	faseBoard = 0;
@@ -724,9 +751,10 @@ public class MesaPoker extends JFrame {
     }
     
     private void pasarAlJugadorBB() {
-    	turnoActual = 2;
+    	turnoActual = (turnoActual == 2) ? 1 : 2;
     	contadorTurno1 = 0;
-    	Jugador jugadorActual = panelesJugadores.get(2);
+    	
+    	Jugador jugadorActual = panelesJugadores.get(turnoActual);
         if (jugadorActual.esBot()) {
             ejecutarTurnoBot(jugadorActual);
         } else {
@@ -787,7 +815,8 @@ public class MesaPoker extends JFrame {
         }
 
         boardPanel.mostrarCartas(cartasBoardActuales, cartaImagenMap);
-        actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
+        Jugador bot = panelesJugadores.get(2);
+        valorManoBot = ProbabilidadPoker.calcularValorManoBot(new ArrayList<>(), manosJugadores.get(bot.getId()), generarBarajaDisponible());
     }
 
     private List<String> generarBarajaDisponible() {
@@ -795,36 +824,6 @@ public class MesaPoker extends JFrame {
         baraja.removeAll(cartasBoardActuales);
         return baraja;
     }
-
-    public void actualizarProbabilidades(List<String> cartasComunitarias, Map<Integer, String[]> manosJugadores, List<String> baraja) {
-    	boolean Omaha = false;
-    	if (modalidad.equals("Omaha")) 
-    		Omaha = true;
-    	Map<Integer, Double> probabilidades = new HashMap<>();
-    	Map<Integer, String[]> manosActivas = new HashMap<>();
-        for (Map.Entry<Integer, String[]> entrada : manosJugadores.entrySet()) {
-            if (jugadoresActivos.getOrDefault(entrada.getKey(), false)) {
-                manosActivas.put(entrada.getKey(), entrada.getValue());
-            }
-        }
-
-        probabilidades = ProbabilidadPoker.calcularProbabilidad(manosActivas, cartasComunitarias, baraja, Omaha);
-        actualizarProbabilidades(probabilidades);
-    }
-    
-    
-    private void actualizarProbabilidades(Map<Integer, Double> probabilidades) {
-    	// Actualizar la interfaz gráfica con las probabilidades calculadas
-    	for (Map.Entry<Integer, Double> entrada : probabilidades.entrySet()) {
-    		int jugadorId = entrada.getKey();
-    		double probabilidad = entrada.getValue();
-    		Jugador jugadorPanel = panelesJugadores.get(jugadorId);
-    		if (jugadorPanel != null) {
-    			jugadorPanel.actualizarProbabilidad(probabilidad);
-    		}
-    	}
-    }
-
 
     private void inicializarMapaCartas() {
     	cartaImagenMap = new HashMap<>();
@@ -896,9 +895,10 @@ public class MesaPoker extends JFrame {
         }
         
         // Recalcular las probabilidades tras el reinicio
-        actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
+        Jugador bot = panelesJugadores.get(2);
+        valorManoBot = ProbabilidadPoker.calcularValorManoBot(new ArrayList<>(), manosJugadores.get(bot.getId()), generarBarajaDisponible());
         repaint(); // Actualizar la interfaz gráfica
     }
-
+    
 }
 
