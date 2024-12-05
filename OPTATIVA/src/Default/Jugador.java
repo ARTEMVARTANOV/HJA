@@ -8,8 +8,6 @@ public class Jugador extends JPanel {
     private final JTextField entradaCartas;
     private final JLabel labelProbabilidad;
     private final JLabel labelSaldo;
-    private final JButton foldButton;
-    private final JButton betButton;
     private final CartaPanel[] cartaPanels = new CartaPanel[4];
     private final int numJugador;
     private double saldo;
@@ -46,12 +44,8 @@ public class Jugador extends JPanel {
         panelSuperior.add(labelProbabilidad);
         labelSaldo = crearEtiqueta("Saldo: 1000$");
         panelSuperior.add(labelSaldo);
-        betButton = crearBotonApostar();
-        panelSuperior.add(betButton);
-        foldButton = crearBotonFold();
-        panelSuperior.add(foldButton);
 
-        panelSuperior.setPreferredSize(new Dimension(200, 200));
+        panelSuperior.setPreferredSize(new Dimension(200, 90));
         
         // Panel para la mitad inferior (cartas y entrada)
         JPanel panelInferior = new JPanel();
@@ -70,20 +64,6 @@ public class Jugador extends JPanel {
         JLabel etiqueta = new JLabel(texto, SwingConstants.CENTER);
         etiqueta.setAlignmentX(CENTER_ALIGNMENT);
         return etiqueta;
-    }
-
-    private JButton crearBotonFold() {
-        JButton boton = new JButton("Fold");
-        boton.setAlignmentX(CENTER_ALIGNMENT);
-        boton.addActionListener(e -> hacerFold());
-        return boton;
-    }
-    
-    private JButton crearBotonApostar() {
-        JButton boton = new JButton("Apostar");
-        boton.setAlignmentX(CENTER_ALIGNMENT);
-        boton.addActionListener(e -> realizarApuesta());
-        return boton;
     }
 
     private JTextField crearCampoEntrada() {
@@ -174,15 +154,6 @@ public class Jugador extends JPanel {
 
     public boolean puedeSeguirJugando() {
         return saldo > 0;
-    }
-
-    private void hacerFold() {
-        enJuego = false;
-        labelProbabilidad.setText("Folded");
-        foldButton.setEnabled(false);
-        if (onFoldCallback != null) {
-            onFoldCallback.run();
-        }
     }
 
     public void actualizarProbabilidad(double probabilidad) {
@@ -276,7 +247,6 @@ public class Jugador extends JPanel {
     public void reiniciarJugador(String[] cartasIniciales) {
         // Restablecer el estado del jugador
         enJuego = true;
-        foldButton.setEnabled(true);
         resetApuesta();
         labelProbabilidad.setText("Probabilidad: 0%"); // Reiniciar la etiqueta de probabilidad
 

@@ -9,8 +9,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class MesaPoker extends JFrame {
-	private  int cont = 0;
-	
     private Map<String, String> cartaImagenMap;
     private List<String> cartasDisponibles;
     private List<String> cartasBoardActuales;
@@ -18,28 +16,25 @@ public class MesaPoker extends JFrame {
     private int faseBoard = 0;
     private Map<Integer, String[]> manosJugadores;
     private Map<Integer, Jugador> panelesJugadores;
-    private JTextField cartaInput;
-    private JButton agregarCartaButton;
     private Map<Integer, Boolean> jugadoresActivos;
     private String modalidad = "Texas Hold'em";
     private double boteTotal = 0.0;
     private JLabel boteLabel;
-    private static final double CIEGA_PEQUENA = 100;
-    private static final double CIEGA_GRANDE = 200;
+    private static final double CIEGA_INICIAL = 100;
     private int jugadorCiegaPequena = 1; // El jugador que paga la ciega pequeña
     private int jugadorCiegaGrande = 2; // El jugador que paga la ciega grande
     private int turnoActual; // Índice del jugador actual
-    private double apuestaActual = CIEGA_PEQUENA;
+    private double apuestaActual = CIEGA_INICIAL;
     private boolean modoAllIn = false;
-    private int apuestaTotalJug1 = 100;
-    private int apuestaTotalJug2= 200;
+    private double apuestaTotalJug1 = 100;
+    private double apuestaTotalJug2= 200;
     private int contadorTurno1 = 0;
-	private boolean huboFold = false;
-    
+	private  int cont = 0;
+	private  double ciegaActual = CIEGA_INICIAL;
     
     public MesaPoker() {
         setTitle("Mesa de Poker");
-        setSize(1300, 900);
+        setSize(1300, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null); // Usaremos posicionamiento absoluto para los componentes
 
@@ -53,79 +48,33 @@ public class MesaPoker extends JFrame {
         for (int i = 1; i <= 2; i++) {
             jugadoresActivos.put(i, true);
         }
-        
-        // ===== Selector de modalidad centrado =====
-        JLabel modalidadLabel = new JLabel("Modalidad:");
-        modalidadLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-
-        JComboBox<String> modalidadSelector = new JComboBox<>(new String[]{"Texas Hold'em", "Omaha"});
-        modalidadSelector.addActionListener(e -> {
-            modalidad = (String) modalidadSelector.getSelectedItem();
-            reiniciarMesa();
-        });
-
-        // Panel para el selector de modalidad (centrado encima del board)
-        JPanel modalidadPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        modalidadPanel.setBounds(500, 180, 300, 40); // Centrado horizontalmente
-        modalidadPanel.add(modalidadLabel);
-        modalidadPanel.add(modalidadSelector);
-        add(modalidadPanel);
 
         // ===== Board panel =====
         boardPanel = new BoardPanel();
         boardPanel.setPreferredSize(new Dimension(600, 100));
-        boardPanel.setBounds(350, 250, 600, 150); // Centrado horizontalmente
+        boardPanel.setBounds(350, 190, 600, 150); // Centrado horizontalmente
         add(boardPanel);
         
-        // Inicializar y mostrar el bote
+        /// Obtener dimensiones de la ventana y del JLabel
+        int width = 600; // Ancho del JLabel
+        int height = 150; // Alto del JLabel
+        int x = (getWidth() - width) / 2; // Centrar horizontalmente
+        int y = (getHeight() - height) / 2; // Centrar verticalmente
+
         boteLabel = new JLabel("Bote: $0.00");
-        boteLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        boteLabel.setBounds(350, 400, 600, 150); // Ubicación en la interfaz
+        boteLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        boteLabel.setSize(width, height);
+        boteLabel.setLocation(x - 15, y + 125); // Centrar posición
+        boteLabel.setHorizontalAlignment(SwingConstants.CENTER); // Centrar texto horizontalmente
+        boteLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Añadir margen
+
         add(boteLabel);
-
-
-	     // ===== Controles para agregar carta =====
-	     // Campo de texto más grande y de una sola línea de alto
-	     cartaInput = new JTextField(15); // Ajustar ancho del campo
-	     cartaInput.setMaximumSize(new Dimension(200, 30)); // Restringir el alto del campo
-	
-	     // Botón para agregar carta
-	     agregarCartaButton = new JButton("Agregar Carta");
-	     agregarCartaButton.addActionListener(e -> agregarCartaManualmente());
-	
-	     // Botón para avanzar fase
-	     JButton nextButton = new JButton("Next");
-	     nextButton.addActionListener(e -> avanzarFaseBoard());
-	
-	     // Panel para el campo de texto (centrado)
-	     JPanel textPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-	     textPanel.setBounds(500, 430, 300, 40); // Mover más abajo
-	     textPanel.add(cartaInput);
-	     add(textPanel);
-	
-	     // Panel para los botones (alineados horizontalmente y centrados)
-	     JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-	     buttonsPanel.setBounds(500, 480, 300, 40); // Mover más abajo
-	     buttonsPanel.add(agregarCartaButton);
-	     buttonsPanel.add(nextButton);
-	     add(buttonsPanel);
-	
-	     // Botón global para actualizar todos los jugadores
-	     JButton actualizarTodosButton = new JButton("Actualizar Todos");
-	     actualizarTodosButton.addActionListener(e -> actualizarCartasTodos());
-	
-	     // Panel para el botón de actualizar todos
-	     JPanel actualizarPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-	     actualizarPanel.setBounds(500, 530, 300, 40); // Mover más abajo
-	     actualizarPanel.add(actualizarTodosButton);
-	     add(actualizarPanel);
-
 
         // ===== Posicionar jugadores =====
         int panelWidth = 150;
         int panelHeight = 250;
         int[][] playerPositions = {
-        	    {75, 50}, {1075, 550}
+        	    {75, 50}, {1075, 400}
         	};
 
         int cartasPorJugador = (modalidad.equals("Omaha")) ? 4 : 2;
@@ -150,7 +99,7 @@ public class MesaPoker extends JFrame {
         // Actualizar probabilidades iniciales
         turnoActual = jugadorCiegaPequena; // Comienza con la ciega pequeña
         actualizarProbabilidades(new ArrayList<>(), manosJugadores, generarBarajaDisponible());
-        pagarCiegas();
+        pagarCiegas(ciegaActual);
         SwingUtilities.invokeLater(() -> ejecutarTurnoJugador(panelesJugadores.get(turnoActual)));
 
     }
@@ -189,51 +138,107 @@ public class MesaPoker extends JFrame {
     }
     
     private void ejecutarTurnoJugador(Jugador jugador) {
-        String[] opciones = {"Check", "Call", "Raise", "Fold"};
-        int eleccion = JOptionPane.showOptionDialog(
-            this,
-            "Jugador " + jugador.getId() + ": ¿Qué deseas hacer?",
-            "Turno de Apuesta",
-            JOptionPane.DEFAULT_OPTION,
-            JOptionPane.QUESTION_MESSAGE,
-            null,
-            opciones,
-            opciones[0]
-        );
+        String[] opciones = {"Check", "Call", "Raise", "Fold", "Cerrar Programa"};
         
-        System.out.println(apuestaTotalJug1 + ", " + apuestaTotalJug2);
-        System.out.println(apuestaActual);
+        // Crear un diálogo personalizado
+        JDialog dialog = new JDialog(this, "Turno de Apuesta", true);
+        dialog.setUndecorated(true); // Eliminar barra de título
+        dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE); // Desactivar cierre con la cruz
+
+        // Crear y configurar el JLabel
+        JLabel label = new JLabel("Jugador " + jugador.getId() + ": ¿Qué deseas hacer?");
+        label.setHorizontalAlignment(SwingConstants.CENTER); // Centrar horizontalmente
+        label.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrar en el contenedor
+        label.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Añadir margen alrededor del texto
+        label.setFont(new Font("Arial", Font.BOLD, 15)); // Fuente 'Arial', negrita, tamaño 15
+
+        // Crear un panel para los botones
+        JPanel botonesPanel = new JPanel();
+
+        // Crear botones para opciones
+        JButton[] botones = new JButton[opciones.length];
+        for (int i = 0; i < opciones.length; i++) {
+            botones[i] = new JButton(opciones[i]);
+            int eleccion = i; // Capturar índice para el switch
+            botones[i].addActionListener(e -> {
+                procesarEleccion(jugador, eleccion); // Llamar a la función de elección
+                dialog.dispose(); // Cerrar el diálogo
+            });
+            botonesPanel.add(botones[i]);
+        }
+
+        // Crear un Box.Filler para empujar el JLabel hacia abajo
+        Box.Filler filler = new Box.Filler(
+            new Dimension(0, 25),  // Añadir 150 píxeles de espacio vacío
+            new Dimension(0, 25),  // Definir el tamaño mínimo y máximo como 150 píxeles
+            new Dimension(0, 25)
+        );
+
+        // Agregar componentes al diálogo
+        dialog.add(filler); // Empujar el JLabel hacia abajo
+        dialog.add(label);   // Añadir el JLabel
+        dialog.add(botonesPanel); // Añadir los botones al panel
+
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);  // Centrar el diálogo en la ventana principal
+        dialog.setLocation(dialog.getX(), dialog.getY() + 75); // Desplazar el diálogo 50 píxeles hacia abajo
+        dialog.setVisible(true);
+    }
+
+    // Método para procesar la elección
+    private void procesarEleccion(Jugador jugador, int eleccion) {
         switch (eleccion) {
             case 0: // Check
                 check(jugador);
                 break;
-            case 1: // Ver
+            case 1: // Call
                 ver(jugador);
                 break;
-            case 2: // Subir
+            case 2: // Raise
                 subir(jugador);
                 break;
-            case 3: // Foldear
+            case 3: // Fold
                 foldear(jugador);
+                break;
+            case 4: // Cerrar Programa
+                cerrarPrograma();
                 break;
             default:
                 break;
         }
     }
-
+	
+	 // Método para cerrar el programa mostrando un mensaje de agradecimiento
+	 private void cerrarPrograma() {
+	     // Mostrar un cuadro de diálogo con el mensaje de despedida
+	     JOptionPane.showMessageDialog(
+	         this, 
+	         "¡Gracias por jugar!", 
+	         "Despedida", 
+	         JOptionPane.INFORMATION_MESSAGE
+	     );
+	
+	     // Cerrar el programa
+	     System.exit(0);
+	 }
+ 
     private void check(Jugador jugador) {
+    	double cantidadPorVer = calcularCantidadPorVer(jugador);
     	if(modoAllIn) {
     		jugador.mostrarMensaje("Con un All-In solo se puede Ver o Foldear.");
             ejecutarTurnoJugador(jugador);
         }
     	
-        if (apuestaActual != jugador.getApuestaActual()) {
+        if (cantidadPorVer != 0) {
             jugador.mostrarMensaje("No puedes hacer 'check'. Hay apuestas activas.");
             ejecutarTurnoJugador(jugador);
         } else {
             if (jugador.estaEnJuego() && apuestaTotalJug1 == apuestaTotalJug2 && contadorTurno1 != 0) {
                 avanzarFaseBoard();
             } else {
+            	if(contadorTurno1 == 0) 
+            		contadorTurno1 = 1;
                 pasarAlSiguienteJugador();
             }
         }
@@ -257,7 +262,7 @@ public class MesaPoker extends JFrame {
                 actualizarBote(cantidadPorVer);
                 jugador.mostrarMensaje("Jugador " + jugador.getId() + " iguala con $" + cantidadPorVer);
                 jugador.resetApuesta(); // Resetea la apuesta actual del jugador para reflejar la igualdad.
-                if (jugador.estaEnJuego() && apuestaTotalJug1 == apuestaTotalJug2 && contadorTurno1 != 0) {
+                if (jugador.estaEnJuego() && apuestaTotalJug1 == apuestaTotalJug2 && contadorTurno1 != 0 && !modoAllIn) {
                     avanzarFaseBoard();
                 }
                 	
@@ -282,14 +287,14 @@ public class MesaPoker extends JFrame {
         	if (algunoAllIn()) {
             	modoAllIn = true; 
             }
+        	if(contadorTurno1 == 0) 
+        		contadorTurno1 = 1;
             pasarAlSiguienteJugador();
         }
     }
 
-
-
     private double calcularCantidadPorVer(Jugador jugador) {
-        return Math.max(apuestaActual - jugador.getApuestaActual(), 0);
+        return Math.abs(apuestaTotalJug2 - apuestaTotalJug1);
     }
     
     private void subir(Jugador jugador) {
@@ -308,11 +313,18 @@ public class MesaPoker extends JFrame {
         try {
             double cantidad = Double.parseDouble(cantidadStr.trim());
 
-            if (cantidad <= apuestaActual) {
-                jugador.mostrarMensaje("La cantidad debe ser mayor a la apuesta actual.");
-                ejecutarTurnoJugador(jugador);
-                return;
-            }
+            if(jugador.getId() == 1)
+            	if (apuestaTotalJug2 >= apuestaTotalJug1 + cantidad) {
+                    jugador.mostrarMensaje("La cantidad debe ser mayor a la apuesta actual.");
+                    ejecutarTurnoJugador(jugador);
+                    return;
+                }
+        	else
+        		if (apuestaTotalJug1 >= apuestaTotalJug2 + cantidad) {
+                    jugador.mostrarMensaje("La cantidad debe ser mayor a la apuesta actual.");
+                    ejecutarTurnoJugador(jugador);
+                    return;
+                }
             
             if (jugador.getSaldo() >= cantidad) {
             	
@@ -339,7 +351,8 @@ public class MesaPoker extends JFrame {
             	if (algunoAllIn()) {
                 	modoAllIn = true; 
                 }
-            	
+            	if(contadorTurno1 == 0) 
+            		contadorTurno1 = 1; 
                 pasarAlSiguienteJugador();
                 
             }
@@ -354,10 +367,9 @@ public class MesaPoker extends JFrame {
     private void foldear(Jugador jugador) {
         jugadoresActivos.put(jugador.getId(), false);
         jugador.mostrarMensaje("Jugador " + jugador.getId() + " se retira.");
+        this.contadorTurno1 = 0;
         verificarGanador(); // Verificar si queda un solo jugador activo
-    	huboFold = true; 
         pasarAlSiguienteJugador();
- 
     }
     
     
@@ -410,8 +422,6 @@ public class MesaPoker extends JFrame {
 
     
     private void pasarAlSiguienteJugador() {
-    	if(!huboFold) 
-    		contadorTurno1 = 1; 
     	turnoActual = (turnoActual == 2) ? 1 : 2;
     	Jugador jugadorActual = panelesJugadores.get(turnoActual);
         if (jugadorActual.esBot()) {
@@ -422,7 +432,6 @@ public class MesaPoker extends JFrame {
     }
 
     private void ejecutarTurnoBot(Jugador bot) {
-
         // Lógica del bot
         Map<Integer, Double> probabilidades = ProbabilidadPoker.calcularProbabilidad(manosJugadores, cartasBoardActuales, generarBarajaDisponible(), modalidad.equals("Omaha"));
         double equityBot = probabilidades.getOrDefault(bot.getId(), 0.0);
@@ -519,6 +528,8 @@ public class MesaPoker extends JFrame {
         	if (algunoAllIn()) {
             	modoAllIn = true; 
             }
+        	if(contadorTurno1 == 0) 
+        		contadorTurno1 = 1;
         	pasarAlSiguienteJugador();
         }
     }
@@ -598,7 +609,6 @@ public class MesaPoker extends JFrame {
     }
 
 
-
     private void repartirBote(List<Integer> ganadores) {
         double premioPorJugador = boteTotal / ganadores.size();
         for (int ganadorId : ganadores) {
@@ -638,25 +648,25 @@ public class MesaPoker extends JFrame {
     }
     
 
-    private void reiniciarRonda() {
-    	huboFold = true;
-    	
+    private void reiniciarRonda() { 	
         // Reiniciar el bote
         boteTotal = 0.0;
         boteLabel.setText("Bote: $0.00");
         
+        ciegaActual += 50; 
+        
         if(jugadorCiegaPequena == 1) {
-        	apuestaTotalJug1 = 100;
-    		apuestaTotalJug2 = 200;
+        	apuestaTotalJug1 = ciegaActual;
+    		apuestaTotalJug2 = ciegaActual * 2;
         }else {
-        	apuestaTotalJug1 = 200;
-    		apuestaTotalJug2 = 100;
+        	apuestaTotalJug1 = ciegaActual * 2;
+    		apuestaTotalJug2 = ciegaActual;
         }
         
-    	contadorTurno1 = 0;
-        
-        pagarCiegas();
-        apuestaActual = CIEGA_PEQUENA;
+    	this.contadorTurno1 = 0;
+    	
+        pagarCiegas(ciegaActual);
+        apuestaActual = ciegaActual;
 
         // Verificar si un jugador se quedó sin saldo
         List<Integer> jugadoresConSaldo = new ArrayList<>();
@@ -738,14 +748,14 @@ public class MesaPoker extends JFrame {
     }
     
     // Método para pagar las ciegas
-    private void pagarCiegas() {
+    private void pagarCiegas(double ciegaActual) {
         Jugador jugadorCiegaPequenaObj = panelesJugadores.get(jugadorCiegaPequena);
         Jugador jugadorCiegaGrandeObj = panelesJugadores.get(jugadorCiegaGrande);
 
         // Ciega pequeña
-        if (jugadorCiegaPequenaObj.getSaldo() >= CIEGA_PEQUENA) {
-            jugadorCiegaPequenaObj.reducirSaldo(CIEGA_PEQUENA);
-            actualizarBote(CIEGA_PEQUENA);
+        if (jugadorCiegaPequenaObj.getSaldo() >= ciegaActual) {
+            jugadorCiegaPequenaObj.reducirSaldo(ciegaActual);
+            actualizarBote(ciegaActual);
         } else {
             double saldoRestante = jugadorCiegaPequenaObj.getSaldo();
             jugadorCiegaPequenaObj.reducirSaldo(saldoRestante);
@@ -754,9 +764,9 @@ public class MesaPoker extends JFrame {
         }
 
         // Ciega grande
-        if (jugadorCiegaGrandeObj.getSaldo() >= CIEGA_GRANDE) {
-            jugadorCiegaGrandeObj.reducirSaldo(CIEGA_GRANDE);
-            actualizarBote(CIEGA_GRANDE);
+        if (jugadorCiegaGrandeObj.getSaldo() >= ciegaActual * 2) {
+            jugadorCiegaGrandeObj.reducirSaldo(ciegaActual * 2);
+            actualizarBote(ciegaActual * 2);
         } else {
             double saldoRestante = jugadorCiegaGrandeObj.getSaldo();
             jugadorCiegaGrandeObj.reducirSaldo(saldoRestante);
@@ -815,43 +825,6 @@ public class MesaPoker extends JFrame {
     	}
     }
 
-
-    private void agregarCartaManualmente() {
-        String entrada = cartaInput.getText().trim();
-        String[] cartas = entrada.split(",");
-        
-        for(String carta : cartas) {
-	        if (!cartaImagenMap.containsKey(carta)) {
-	            JOptionPane.showMessageDialog(this, "Carta inválida. Intenta nuevamente.");
-	            return;
-	        }
-	
-	        if (cartasBoardActuales.contains(carta) || !cartasDisponibles.remove(carta)) {
-	            JOptionPane.showMessageDialog(this, "Carta ya en uso o no disponible.");
-	            return;
-	        }
-	
-	        cartasBoardActuales.add(carta);
-        }
-        boardPanel.mostrarCartas(cartasBoardActuales, cartaImagenMap);
-        actualizarProbabilidades(cartasBoardActuales, manosJugadores, generarBarajaDisponible());
-        cartaInput.setText("");
-    }
-
-    private void actualizarCartasTodos() {
-        for (Map.Entry<Integer, Jugador> entrada : panelesJugadores.entrySet()) {
-            Jugador jugador = entrada.getValue();
-
-            // Supongamos que cada jugador tiene un campo de entrada para cartas
-            String entradaTexto = jugador.getEntradaCartas(); // Método para obtener el texto del campo
-            if (entradaTexto != null && !entradaTexto.isEmpty()) {
-                jugador.actualizarCartas(); // Reutilizamos el método existente en Jugador
-            }
-        }
-        // Después de actualizar, recalculamos probabilidades
-        List<String> barajaActualizada = generarBarajaDisponible();
-        actualizarProbabilidades(cartasBoardActuales, manosJugadores, barajaActualizada);
-    }
 
     private void inicializarMapaCartas() {
     	cartaImagenMap = new HashMap<>();
