@@ -31,10 +31,12 @@ public class Jugador extends JPanel {
 
         setPreferredSize(new Dimension(200, 400));
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setBackground(new Color(0x65, 0x43, 0x21)); // Fondo color marrón
+        setOpaque(true); // Asegúrate de que el fondo sea visible
 
         // Panel para la mitad superior con fondo gris
         JPanel panelSuperior = new JPanel();
-        panelSuperior.setBackground(new Color(200, 200, 200));  // Fondo gris
+        panelSuperior.setBackground(new Color(0x65, 0x43, 0x21));  // Fondo gris
         
         panelSuperior.add(crearEtiqueta("Jugador " + numeroJugador + ":"));
         labelSaldo = crearEtiqueta("Saldo: 1000$");
@@ -46,6 +48,7 @@ public class Jugador extends JPanel {
         JPanel panelInferior = new JPanel();
         panelInferior.setLayout(new BoxLayout(panelInferior, BoxLayout.Y_AXIS));
         panelInferior.setPreferredSize(new Dimension(200, 250));  // 150 de altura para la mitad inferior
+        panelInferior.setBackground(new Color(0x65, 0x43, 0x21));
         entradaCartas = crearCampoEntrada();
         panelInferior.add(entradaCartas);
         panelInferior.add(crearPanelCartas());
@@ -58,6 +61,7 @@ public class Jugador extends JPanel {
     private JLabel crearEtiqueta(String texto) {
         JLabel etiqueta = new JLabel(texto, SwingConstants.CENTER);
         etiqueta.setAlignmentX(CENTER_ALIGNMENT);
+        etiqueta.setForeground(Color.WHITE);
         return etiqueta;
     }
 
@@ -69,6 +73,7 @@ public class Jugador extends JPanel {
 
     private JPanel crearPanelCartas() {
         JPanel panelCartas = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        panelCartas.setBackground(new Color(0x65, 0x43, 0x21));
         
         for (int i = 0; i < cartaPanels.length; i++) {
             cartaPanels[i] = new CartaPanel();

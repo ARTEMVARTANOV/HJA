@@ -32,14 +32,19 @@ public class MesaPoker extends JFrame {
 	private  int cont = 0;
 	private  double ciegaActual = CIEGA_INICIAL;
     private double valorManoBot = 0;
+    private JPanel panelCartasJugador1, panelCartasJugador2;
 	
     public MesaPoker() {
         setTitle("Mesa de Poker");
         setSize(1300, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(null); // Usaremos posicionamiento absoluto para los componentes
 
-        // Inicialización de los datos
+        // Configurar el contenido del JFrame
+        MesaPanel mesaPanel = new MesaPanel();
+        mesaPanel.setLayout(null);
+        setContentPane(mesaPanel);
+
+        // Inicializar lógica
         inicializarMapaCartas();
         inicializarCartasDisponibles();
         cartasBoardActuales = new ArrayList<>();
@@ -47,66 +52,146 @@ public class MesaPoker extends JFrame {
         panelesJugadores = new HashMap<>();
         jugadoresActivos = new HashMap<>();
         Collections.shuffle(cartasDisponibles);
+
         for (int i = 1; i <= 2; i++) {
             jugadoresActivos.put(i, true);
         }
 
-        // ===== Board panel =====
+        // ===== Panel del Board =====
         boardPanel = new BoardPanel();
-        boardPanel.setPreferredSize(new Dimension(600, 100));
-        boardPanel.setBounds(350, 190, 600, 150); // Centrado horizontalmente
-        add(boardPanel);
+        boardPanel.setBounds(500, 250, 300, 100); // Centrado en la mesa
+        mesaPanel.add(boardPanel);
         
-        /// Obtener dimensiones de la ventana y del JLabel
-        int width = 600; // Ancho del JLabel
-        int height = 150; // Alto del JLabel
-        int x = (getWidth() - width) / 2; // Centrar horizontalmente
-        int y = (getHeight() - height) / 2; // Centrar verticalmente
+        
+        
+     // ===== Panel para cartas del jugador 1 con bordes redondeados =====
+        panelCartasJugador1 = new RoundedPanel(new Color(0x65, 0x43, 0x21), 20); // Color marrón y esquinas redondeadas
+        panelCartasJugador1.setBounds(500, 60, 300, 100); // Posición superior centrada
+        mesaPanel.add(panelCartasJugador1);
 
+        // ===== Panel para cartas del jugador 2 con bordes redondeados =====
+        panelCartasJugador2 = new RoundedPanel(new Color(0x65, 0x43, 0x21), 20); // Color marrón y esquinas redondeadas
+        panelCartasJugador2.setBounds(500, 540, 300, 100); // Posición inferior centrada
+        mesaPanel.add(panelCartasJugador2);
+        
+
+        // ===== Etiqueta del Bote =====
         boteLabel = new JLabel("Bote: $0.00");
         boteLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        boteLabel.setSize(width, height);
-        boteLabel.setLocation(x - 15, y + 125); // Centrar posición
-        boteLabel.setHorizontalAlignment(SwingConstants.CENTER); // Centrar texto horizontalmente
-        boteLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Añadir margen
+        boteLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        boteLabel.setForeground(Color.WHITE);
+        boteLabel.setBounds(500, 200, 300, 50); // Encima del board
+        mesaPanel.add(boteLabel);
+        
+        
 
-        add(boteLabel);
+        // ===== Paneles de los Jugadores =====
+        int panelWidth = 200;
+        int panelHeight = 141;
 
-        // ===== Posicionar jugadores =====
-        int panelWidth = 150;
-        int panelHeight = 200;
         int[][] playerPositions = {
-        	    {75, 50}, {1075, 400}
-        	};
+            {551, 17},   // Jugador 1 (arriba-izquierda)
+            {551, 493},  // Jugador 2 (abajo-derecha)
+        };
 
-        int cartasPorJugador = (modalidad.equals("Omaha")) ? 4 : 2;
+        int cartasPorJugador = modalidad.equals("Omaha") ? 4 : 2;
         double saldoInicial = 1000.0;
         int idBot = 2;
+
         for (int i = 0; i < 2; i++) {
             String[] cartasJugador = seleccionarCartasAleatorias(cartasPorJugador);
             manosJugadores.put(i + 1, cartasJugador);
 
             final int jugadorId = i + 1;
-            boolean esBot = (jugadorId == idBot); // Determina si este jugador es el bot
-            Jugador jugador = new Jugador(jugadorId, cartaImagenMap, cartasJugador,saldoInicial, () -> {
-                jugadoresActivos.put(jugadorId, false);
-            }, this, esBot);
+            boolean esBot = (jugadorId == idBot);
+
+            Jugador jugador = new Jugador(
+                jugadorId,
+                cartaImagenMap,
+                cartasJugador,
+                saldoInicial,
+                () -> jugadoresActivos.put(jugadorId, false),
+                this,
+                esBot
+            );
 
             jugador.setBounds(playerPositions[i][0], playerPositions[i][1], panelWidth, panelHeight);
+            jugador.setBackground(new Color(0x65, 0x43, 0x21));
             panelesJugadores.put(jugadorId, jugador);
-            add(jugador);
+            //mesaPanel.add(jugador);
         }
+
         cont = 1;
-        
+
+        // Configuración del turno inicial
         Jugador bot = panelesJugadores.get(2);
-        turnoActual = jugadorCiegaPequena; // Comienza con la ciega pequeña
-        valorManoBot = ProbabilidadPoker.calcularValorManoBot(new ArrayList<>(), manosJugadores.get(bot.getId()), generarBarajaDisponible());
+        turnoActual = jugadorCiegaPequena;
+        valorManoBot = ProbabilidadPoker.calcularValorManoBot(
+            new ArrayList<>(),
+            manosJugadores.get(bot.getId()),
+            generarBarajaDisponible()
+        );
+
         System.out.println("Valor de la mano del bot: " + valorManoBot);
         pagarCiegas(ciegaActual);
-        //bot.ocultarCartas();
         SwingUtilities.invokeLater(() -> ejecutarTurnoJugador(panelesJugadores.get(turnoActual)));
-
+        
+        for (Jugador jugador : panelesJugadores.values()) {
+            mesaPanel.add(jugador);
+            mesaPanel.setComponentZOrder(jugador, 0); // Traer al frente
+        }
     }
+    
+ // Clase para paneles con bordes redondeados
+    private static class RoundedPanel extends JPanel {
+        private Color backgroundColor;
+        private int cornerRadius;
+
+        public RoundedPanel(Color backgroundColor, int cornerRadius) {
+            this.backgroundColor = backgroundColor;
+            this.cornerRadius = cornerRadius;
+            setOpaque(false); // Hacer el fondo transparente para que solo se dibuje el rectángulo redondeado
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // Dibujar fondo con bordes redondeados
+            g2d.setColor(backgroundColor);
+            g2d.fillRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius);
+
+            // Dibujar borde si es necesario
+            g2d.setColor(Color.BLACK); // Cambiar color del borde si es necesario
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, cornerRadius, cornerRadius);
+        }
+    }
+
+ // Clase para dibujar la mesa elíptica con los nuevos colores
+    private static class MesaPanel extends JPanel {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+
+            // Fondo azul oscuro
+            g2d.setColor(new Color(0x00, 0x33, 0x66));
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+
+            // Elipse de la mesa (color verde oscuro)
+            g2d.setColor(new Color(0x3B, 0x7A, 0x57)); // Color hexadecimal 3B7A57
+            g2d.fillOval(100, 50, getWidth() - 200, getHeight() - 100);
+
+            // Borde de la elipse (color amarillo brillante)
+            g2d.setColor(new Color(0xFF, 0xC3, 0x00)); // Color hexadecimal FFC300
+            g2d.setStroke(new BasicStroke(5)); // Ancho del borde
+            g2d.drawOval(100, 50, getWidth() - 200, getHeight() - 100);
+        }
+    }
+
 
 	private void reiniciarMesa() {
     	limpiarCartas();
@@ -147,27 +232,37 @@ public class MesaPoker extends JFrame {
     
     private void ejecutarTurnoJugador(Jugador jugador) {
         String[] opciones = {"Check", "Call", "Raise", "Fold", "Cerrar Programa"};
-        
+
         // Crear un diálogo personalizado
         JDialog dialog = new JDialog(this, "Turno de Apuesta", true);
         dialog.setUndecorated(true); // Eliminar barra de título
         dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
         dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE); // Desactivar cierre con la cruz
 
+     // Cambiar el fondo del contenido del diálogo
+        dialog.getContentPane().setBackground(new Color(0x3B, 0x7A, 0x57)); // Mismo color que el tablero
+        
         // Crear y configurar el JLabel
         JLabel label = new JLabel("Jugador " + jugador.getId() + ": ¿Qué deseas hacer?");
         label.setHorizontalAlignment(SwingConstants.CENTER); // Centrar horizontalmente
         label.setAlignmentX(Component.CENTER_ALIGNMENT); // Centrar en el contenedor
         label.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Añadir margen alrededor del texto
         label.setFont(new Font("Arial", Font.BOLD, 15)); // Fuente 'Arial', negrita, tamaño 15
+        label.setForeground(Color.WHITE); // Cambiar el texto a blanco para mejor visibilidad
 
         // Crear un panel para los botones
         JPanel botonesPanel = new JPanel();
-
+        botonesPanel.setBackground(new Color(0x3B, 0x7A, 0x57)); // Camuflar el fondo con el tablero
+        botonesPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 15, 10)); // Centrar botones y añadir espacio
+        botonesPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0)); // Margen superior para bajar todo el panel de botones
+        
         // Crear botones para opciones
         JButton[] botones = new JButton[opciones.length];
         for (int i = 0; i < opciones.length; i++) {
             botones[i] = new JButton(opciones[i]);
+            botones[i].setFocusPainted(false); // Quitar el efecto de foco
+            botones[i].setBackground(Color.DARK_GRAY); // Fondo oscuro para los botones
+            botones[i].setForeground(Color.WHITE); // Texto blanco para contraste
             int eleccion = i; // Capturar índice para el switch
             botones[i].addActionListener(e -> {
                 procesarEleccion(jugador, eleccion); // Llamar a la función de elección
@@ -178,8 +273,8 @@ public class MesaPoker extends JFrame {
 
         // Crear un Box.Filler para empujar el JLabel hacia abajo
         Box.Filler filler = new Box.Filler(
-            new Dimension(0, 25),  // Añadir 150 píxeles de espacio vacío
-            new Dimension(0, 25),  // Definir el tamaño mínimo y máximo como 150 píxeles
+            new Dimension(0, 25),  // Añadir 25 píxeles de espacio vacío
+            new Dimension(0, 25),  // Definir el tamaño mínimo y máximo como 25 píxeles
             new Dimension(0, 25)
         );
 
@@ -190,9 +285,10 @@ public class MesaPoker extends JFrame {
 
         dialog.pack();
         dialog.setLocationRelativeTo(this);  // Centrar el diálogo en la ventana principal
-        dialog.setLocation(dialog.getX(), dialog.getY() + 75); // Desplazar el diálogo 50 píxeles hacia abajo
+        dialog.setLocation(dialog.getX(), dialog.getY() + 105); // Desplazar el diálogo 75 píxeles hacia abajo
         dialog.setVisible(true);
     }
+
 
     // Método para procesar la elección
     private void procesarEleccion(Jugador jugador, int eleccion) {

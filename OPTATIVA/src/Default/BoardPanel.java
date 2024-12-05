@@ -9,14 +9,14 @@ public class BoardPanel extends JPanel {
     private CartaPanel[] cardPanels;
 
     public BoardPanel() {
-        // Cambiar el color de fondo a un verde más oscuro
-        setBackground(new Color(34, 139, 34)); // Verde oscuro agradable
+        // Fondo transparente para respetar el diseño personalizado
+        setOpaque(false);
 
         // Usar GridBagLayout para centrar las cartas horizontal y verticalmente
         setLayout(new GridBagLayout());
 
         // Configurar el tamaño preferido del panel
-        setPreferredSize(new Dimension(400, 150)); // Tamaño más grande para acomodar el centrado
+        setPreferredSize(new Dimension(400, 150)); // Ajustado para acomodar el diseño
 
         // Inicializar cinco paneles de carta para las cartas del board
         cardPanels = new CartaPanel[5];
@@ -42,6 +42,21 @@ public class BoardPanel extends JPanel {
         add(cartasPanel, gbc);
     }
 
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+
+        // Dibujar fondo negro mate con bordes redondeados
+        g2d.setColor(new Color(0x1B, 0x1B, 0x1B)); // Fondo negro mate
+        g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30); // Bordes redondeados
+
+        // Dibujar borde amarillo alrededor del panel
+        g2d.setColor(new Color(0xFF, 0xC3, 0x00)); // Amarillo FFC300
+        g2d.setStroke(new BasicStroke(5)); // Grosor del borde
+        g2d.drawRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 30, 30); // Bordes redondeados
+    }
+
     // Limpiar las cartas del board
     public void limpiarCartas() {
         for (CartaPanel panel : cardPanels) {
@@ -60,3 +75,4 @@ public class BoardPanel extends JPanel {
         }
     }
 }
+
