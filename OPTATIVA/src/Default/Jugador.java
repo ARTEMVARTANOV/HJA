@@ -5,7 +5,6 @@ import java.awt.*;
 import java.util.Map;
 
 public class Jugador extends JPanel {
-    private final JTextField entradaCartas;
     private final JLabel labelSaldo;
     private final CartaPanel[] cartaPanels = new CartaPanel[4];
     private final int numJugador;
@@ -37,7 +36,7 @@ public class Jugador extends JPanel {
         // Panel para la mitad superior con fondo gris
         JPanel panelSuperior = new JPanel();
         panelSuperior.setBackground(new Color(0x65, 0x43, 0x21));  // Fondo gris
-        
+        panelSuperior.setLayout(new BoxLayout(panelSuperior, BoxLayout.Y_AXIS));
         panelSuperior.add(crearEtiqueta("Jugador " + numeroJugador + ":"));
         labelSaldo = crearEtiqueta("Saldo: 1000$");
         panelSuperior.add(labelSaldo);
@@ -49,8 +48,6 @@ public class Jugador extends JPanel {
         panelInferior.setLayout(new BoxLayout(panelInferior, BoxLayout.Y_AXIS));
         panelInferior.setPreferredSize(new Dimension(200, 250));  // 150 de altura para la mitad inferior
         panelInferior.setBackground(new Color(0x65, 0x43, 0x21));
-        entradaCartas = crearCampoEntrada();
-        panelInferior.add(entradaCartas);
         panelInferior.add(crearPanelCartas());
 
         // Agregar ambos paneles al panel principal
@@ -154,19 +151,6 @@ public class Jugador extends JPanel {
         return numJugador;
     }
 
-    public void actualizarCartas() {
-        String[] cartas = entradaCartas.getText().trim().split(",");
-        
-        // Verificar que el número de cartas es 2 (para el póker clásico) o 4 (para Omaha)
-        if (cartas.length == 2 || cartas.length == 4) {
-            actualizarManoJugador(cartas);
-        } else {
-            mostrarMensaje("Por favor, ingrese 2 cartas si esta en modalidad Texas Hold'em "
-            		+ "o 4 cartas si esta en modalidad Omaha separadas por una coma.");
-        }
-        entradaCartas.setText("");
-    }
-
     private void actualizarManoJugador(String[] cartas) {
         // Verificar las cartas ingresadas dependiendo de la longitud
         if (cartas.length == 2) {
@@ -224,10 +208,6 @@ public class Jugador extends JPanel {
         }
     }
 
-    public String getEntradaCartas() {
-        return entradaCartas.getText().trim(); // Devuelve el texto del campo de entrada
-    }
-    
     public void mostrarMensaje(String mensaje) {
         // Crear el JOptionPane
         JOptionPane optionPane = new JOptionPane(mensaje, JOptionPane.INFORMATION_MESSAGE);
@@ -274,9 +254,6 @@ public class Jugador extends JPanel {
         enJuego = true;
         resetApuesta();
         //labelProbabilidad.setText("Probabilidad: 0%"); // Reiniciar la etiqueta de probabilidad
-
-        // Limpiar el campo de entrada
-        entradaCartas.setText("");
         
         actualizarSaldo();
         // Revalidar y repintar para actualizar la interfaz

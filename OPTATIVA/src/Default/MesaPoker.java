@@ -59,8 +59,9 @@ public class MesaPoker extends JFrame {
 
         // ===== Panel del Board =====
         boardPanel = new BoardPanel();
-        boardPanel.setBounds(500, 250, 300, 100); // Centrado en la mesa
-        mesaPanel.add(boardPanel);
+        boardPanel.setPreferredSize(new Dimension(600, 100));
+        boardPanel.setBounds(350, 190, 600, 150); // Centrado horizontalmente
+        add(boardPanel);
         
         
         
@@ -90,8 +91,8 @@ public class MesaPoker extends JFrame {
         int panelHeight = 141;
 
         int[][] playerPositions = {
-            {551, 17},   // Jugador 1 (arriba-izquierda)
-            {551, 493},  // Jugador 2 (abajo-derecha)
+            {551, 493},   // Jugador 1 (arriba-izquierda)
+            {551, 10},  // Jugador 2 (abajo-derecha)
         };
 
         int cartasPorJugador = modalidad.equals("Omaha") ? 4 : 2;
@@ -254,7 +255,6 @@ public class MesaPoker extends JFrame {
         JPanel botonesPanel = new JPanel();
         botonesPanel.setBackground(new Color(0x3B, 0x7A, 0x57)); // Camuflar el fondo con el tablero
         botonesPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 15, 10)); // Centrar botones y añadir espacio
-        botonesPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0)); // Margen superior para bajar todo el panel de botones
         
         // Crear botones para opciones
         JButton[] botones = new JButton[opciones.length];
@@ -271,21 +271,14 @@ public class MesaPoker extends JFrame {
             botonesPanel.add(botones[i]);
         }
 
-        // Crear un Box.Filler para empujar el JLabel hacia abajo
-        Box.Filler filler = new Box.Filler(
-            new Dimension(0, 25),  // Añadir 25 píxeles de espacio vacío
-            new Dimension(0, 25),  // Definir el tamaño mínimo y máximo como 25 píxeles
-            new Dimension(0, 25)
-        );
 
         // Agregar componentes al diálogo
-        dialog.add(filler); // Empujar el JLabel hacia abajo
         dialog.add(label);   // Añadir el JLabel
         dialog.add(botonesPanel); // Añadir los botones al panel
 
         dialog.pack();
         dialog.setLocationRelativeTo(this);  // Centrar el diálogo en la ventana principal
-        dialog.setLocation(dialog.getX(), dialog.getY() + 105); // Desplazar el diálogo 75 píxeles hacia abajo
+        dialog.setLocation(dialog.getX(), dialog.getY() + 100); // Desplazar el diálogo 75 píxeles hacia abajo
         dialog.setVisible(true);
     }
 
