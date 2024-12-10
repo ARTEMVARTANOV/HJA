@@ -115,7 +115,7 @@ public class Jugador extends JPanel {
             mesaPoker.actualizarBote(cantidad); // Actualizar el bote en la mesa
             actualizarSaldo();
         } else {
-            mostrarMensaje("No tienes suficiente saldo para apostar $" + cantidad);
+        	mesaPoker.mostrarMensaje("No tienes suficiente saldo para apostar $" + cantidad);
         }
     }
 
@@ -164,7 +164,7 @@ public class Jugador extends JPanel {
                 reiniciarCartas(new String[]{carta1, carta2});
                 mesaPoker.actualizarManoJugador(numJugador, new String[]{carta1, carta2});
             } else {
-                mostrarMensaje("Una o ambas cartas no son válidas o ya están en uso.");
+            	mesaPoker.mostrarMensaje("Una o ambas cartas no son válidas o ya están en uso.");
             }
         } else if (cartas.length == 4) {
             // Para Omaha (4 cartas)
@@ -183,7 +183,7 @@ public class Jugador extends JPanel {
                 reiniciarCartas(new String[]{carta1, carta2, carta3, carta4});
                 mesaPoker.actualizarManoJugador(numJugador, new String[]{carta1, carta2, carta3, carta4});
             } else {
-                mostrarMensaje("Una o más cartas no son válidas o ya están en uso.");
+            	mesaPoker.mostrarMensaje("Una o más cartas no son válidas o ya están en uso.");
             }
         }
     }
@@ -208,22 +208,6 @@ public class Jugador extends JPanel {
         }
     }
 
-    public void mostrarMensaje(String mensaje) {
-        // Crear el JOptionPane
-        JOptionPane optionPane = new JOptionPane(mensaje, JOptionPane.INFORMATION_MESSAGE);
-        JDialog dialog = optionPane.createDialog("Mensaje");
-
-        // Obtener el tamaño de la pantalla
-        java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-
-        // Calcular la posición para mostrarlo más abajo
-        int x = (int) (screenSize.getWidth() / 2 - dialog.getWidth() / 2);
-        int y = (int) (screenSize.getHeight() - dialog.getHeight() - 100); // Ajusta el margen inferior
-
-        // Establecer la ubicación personalizada
-        dialog.setLocation(x - 300, y - 775);
-        dialog.setVisible(true);
-    }
     
     public void descubrirCartas(String[] cartas) {
     	for (int i = 0; i < cartas.length && i < cartaPanels.length; i++) {
