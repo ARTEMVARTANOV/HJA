@@ -100,7 +100,7 @@ public class MesaPoker extends JFrame {
         };
 
         int cartasPorJugador = modalidad.equals("Omaha") ? 4 : 2;
-        double saldoInicial = 1000.0;
+        double saldoInicial = 20000.0;
         int idBot = 2;
 
         for (int i = 0; i < 2; i++) {
@@ -402,70 +402,113 @@ public class MesaPoker extends JFrame {
     }
     
     private void subir(Jugador jugador) {
-    	if(modoAllIn) {
-    		mostrarMensaje("Con un All-In solo se puede Ver o Foldear.");
-            ejecutarTurnoJugador(jugador);
-        }
-    	boolean aux = false;
-        String cantidadStr = JOptionPane.showInputDialog("Introduce la cantidad para subir:");
-        if (cantidadStr == null || cantidadStr.trim().isEmpty()) {
-            mostrarMensaje("No se ingresó cantidad.");
+        if (modoAllIn) {
+            mostrarMensaje("Con un All-In solo se puede Ver o Foldear.");
             ejecutarTurnoJugador(jugador);
             return;
         }
 
-        try {
-            double cantidad = Double.parseDouble(cantidadStr.trim());
+        // Crear un diálogo para ingresar la cantidad
+        JDialog dialog = new JDialog(this, "Subir Apuesta", true);
+        dialog.setSize(300, 120);
+        dialog.setLayout(new BorderLayout());
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-            if(jugador.getId() == 1)
-            	if (apuestaTotalJug2 >= apuestaTotalJug1 + cantidad) {
-                    mostrarMensaje("La cantidad debe ser mayor a la apuesta actual.");
-                    ejecutarTurnoJugador(jugador);
-                    return;
-                }
-        	else
-        		if (apuestaTotalJug1 >= apuestaTotalJug2 + cantidad) {
-                    mostrarMensaje("La cantidad debe ser mayor a la apuesta actual.");
-                    ejecutarTurnoJugador(jugador);
-                    return;
-                }
-            
-            if (jugador.getSaldo() >= cantidad) {
-            	
-            	if(jugador.getId() == 1)
-            		apuestaTotalJug1 += cantidad;
-            	else
-            		apuestaTotalJug2 += cantidad;
-            	
-                jugador.reducirSaldo(cantidad);
-                jugador.aumentarApuesta(cantidad);
-                registrarSubida(cantidad);
-                actualizarBote(cantidad);
-                apuestaActual = cantidad;
-            } else {
-                mostrarMensaje("Jugador " + jugador.getId() + " no puede apostar más dinero del que tiene.");
-            	ejecutarTurnoJugador(jugador);
+        // Etiqueta descriptiva
+        JLabel label = new JLabel("Introduce la cantidad para subir:");
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        dialog.add(label, BorderLayout.NORTH);
+
+        // Campo de texto para ingresar la cantidad
+        JTextField textField = new JTextField();
+        dialog.add(textField, BorderLayout.CENTER);
+
+        // Botón para confirmar
+        JButton confirmButton = new JButton("Confirmar");
+        confirmButton.addActionListener(e -> {
+            String cantidadStr = textField.getText();
+            if (cantidadStr == null || cantidadStr.trim().isEmpty()) {
+                mostrarMensaje("No se ingresó cantidad.");
+                dialog.dispose();
+                ejecutarTurnoJugador(jugador);
+                return;
             }
 
-            if(modoAllIn) {
-            	iniciarModoAllIn();
-            	aux = true;
-            }
-            else if(aux == false) {
-            	if (algunoAllIn()) {
-                	modoAllIn = true; 
+            try {
+            	dialog.dispose();
+                double cantidad = Double.parseDouble(cantidadStr.trim());
+
+                if (jugador.getId() == 1) {
+                    if (apuestaTotalJug2 >= apuestaTotalJug1 + cantidad) {
+                        mostrarMensaje("La cantidad debe ser mayor a la apuesta actual.");
+                        dialog.dispose();
+                        ejecutarTurnoJugador(jugador);
+                        return;
+                    }
+                } else {
+                    if (apuestaTotalJug1 >= apuestaTotalJug2 + cantidad) {
+                        mostrarMensaje("La cantidad debe ser mayor a la apuesta actual.");
+                        dialog.dispose();
+                        ejecutarTurnoJugador(jugador);
+                        return;
+                    }
                 }
-            	if(contadorTurno1 == 0) 
-            		contadorTurno1 = 1; 
-                pasarAlSiguienteJugador();
-                
+
+                if (jugador.getSaldo() >= cantidad) {
+                    if (jugador.getId() == 1)
+                        apuestaTotalJug1 += cantidad;
+                    else
+                        apuestaTotalJug2 += cantidad;
+
+                    jugador.reducirSaldo(cantidad);
+                    jugador.aumentarApuesta(cantidad);
+                    registrarSubida(cantidad);
+                    actualizarBote(cantidad);
+                    apuestaActual = cantidad;
+
+                    if (modoAllIn) {
+                        iniciarModoAllIn();
+                    } else {
+                        if (algunoAllIn()) {
+                            modoAllIn = true;
+                        }
+                        if (contadorTurno1 == 0)
+                            contadorTurno1 = 1;
+                        pasarAlSiguienteJugador();
+                    }
+                } else {
+                    mostrarMensaje("Jugador " + jugador.getId() + " no puede apostar más dinero del que tiene.");
+                    dialog.dispose();
+                    ejecutarTurnoJugador(jugador);
+                }
+
+            } catch (NumberFormatException ex) {
+                mostrarMensaje("Entrada no válida.");
+                dialog.dispose();
+                ejecutarTurnoJugador(jugador);
             }
-            
-        } catch (NumberFormatException e) {
-            mostrarMensaje("Entrada no válida.");
+
+            dialog.dispose();
+        });
+
+        // Botón para cancelar
+        JButton cancelButton = new JButton("Cancelar");
+        cancelButton.addActionListener(e -> {
+            dialog.dispose();
             ejecutarTurnoJugador(jugador);
-        }
+        });
+
+        // Panel de botones
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.add(confirmButton);
+        buttonPanel.add(cancelButton);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Centrar el diálogo en la ventana principal
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
+
 
     
     private void foldear(Jugador jugador) {
@@ -526,6 +569,18 @@ public class MesaPoker extends JFrame {
 
     
     private void pasarAlSiguienteJugador() {
+    	List<Jugador> jugadores = new ArrayList<>();
+    	for (Jugador jugador : panelesJugadores.values()) {
+    		jugadores.add(jugador);
+        }
+    	
+    	double saldoJug1 = jugadores.get(0).getSaldo();
+    	double saldoJug2 = jugadores.get(1).getSaldo();
+    	if(saldoJug1 == 0.0) 
+    		mostrarMensaje("El jugador 1 hizo All-In");
+    	else if(saldoJug2 == 0.0) 
+    		mostrarMensaje("El bot hizo All-In");
+    	
     	turnoActual = (turnoActual == 2) ? 1 : 2;
     	Jugador jugadorActual = panelesJugadores.get(turnoActual);
         if (jugadorActual.esBot()) {
