@@ -463,7 +463,7 @@ public class MesaPoker extends JFrame {
 
                     jugador.reducirSaldo(cantidad);
                     jugador.aumentarApuesta(cantidad);
-                    registrarSubida(cantidad);
+                    registrarSubida(cantidad, jugador);
                     actualizarBote(cantidad);
                     apuestaActual = cantidad;
 
@@ -521,9 +521,10 @@ public class MesaPoker extends JFrame {
     }
     
     
-    private void registrarSubida(double cantidad) {
+    private void registrarSubida(double cantidad, Jugador jugador) {
         apuestaActual = Math.max(apuestaActual, cantidad); // Mantiene la apuesta máxima actualizada.
-        mostrarMensaje("Nueva subida registrada: $" + String.format("%.2f", cantidad));
+        if(jugador.getId() == 1)
+        	mostrarMensaje("Nueva subida registrada: $" + String.format("%.2f", cantidad));
     }
     
     private double calcularApuestaMaxima() {
@@ -719,7 +720,7 @@ public class MesaPoker extends JFrame {
             	
                 bot.reducirSaldo(cantidadSubida);
                 bot.aumentarApuesta(cantidadSubida);
-                registrarSubida(cantidadSubida);
+                registrarSubida(cantidadSubida, bot);
                 actualizarBote(cantidadSubida);
                 apuestaActual = cantidadSubida; // Actualizar apuesta actual al all-in
                 mostrarMensaje("El bot ha hecho raise de $ " + cantidadSubida);
@@ -728,7 +729,7 @@ public class MesaPoker extends JFrame {
                 double saldoRestante = bot.getSaldo();
                 bot.reducirSaldo(saldoRestante);
                 bot.aumentarApuesta(saldoRestante);
-                registrarSubida(saldoRestante); // Registrar el all-in como la nueva apuesta
+                registrarSubida(saldoRestante, bot); // Registrar el all-in como la nueva apuesta
                 actualizarBote(saldoRestante);
                 apuestaActual = saldoRestante; // Actualizar apuesta actual al all-in
                 mostrarMensaje("Bot hace all-in con $ " + saldoRestante);
@@ -885,6 +886,7 @@ public class MesaPoker extends JFrame {
         
     	this.contadorTurno1 = 0;
     	this.modoAllIn = false;
+    	this.faseBoard = 0;
     	
         pagarCiegas(ciegaActual);
         apuestaActual = ciegaActual;
