@@ -364,7 +364,6 @@ public class MesaPoker extends JFrame {
                 actualizarBote(cantidadPorVer);
                 mostrarMensaje("Jugador " + jugador.getId() + " iguala con $" + cantidadPorVer);
                 jugador.resetApuesta(); // Resetea la apuesta actual del jugador para reflejar la igualdad.
-                System.out.println("ApuestaTotalJug1: " + apuestaTotalJug1 + " ApuestaTotalJug1: " + apuestaTotalJug1);
                 if (jugador.estaEnJuego() && apuestaTotalJug1 == apuestaTotalJug2 && contadorTurno1 != 0 && !modoAllIn) {
                     avanzarFaseBoard();
                 }
