@@ -205,6 +205,7 @@ public class Jugador extends JPanel {
 
     public void ver(Jugador jugador) {
     	boolean aux = false;
+    	
         double cantidadPorVer = calcularCantidadPorVer(jugador);
         if (cantidadPorVer > 0) {
             if (jugador.getSaldo() >= cantidadPorVer) {
@@ -252,7 +253,11 @@ public class Jugador extends JPanel {
     }
 
     public double calcularCantidadPorVer(Jugador jugador) {
-        return Math.abs(mesaPoker.getApuestaTotalJug2() - mesaPoker.getApuestaTotalJug1());
+    	System.out.println("Bot: " + mesaPoker.getApuestaTotalJug2() + " Jugador: " + mesaPoker.getApuestaTotalJug1());
+    	if (jugador.getId() == 1)
+    		return mesaPoker.getApuestaTotalJug2() - mesaPoker.getApuestaTotalJug1();
+    	else
+    		return mesaPoker.getApuestaTotalJug1() - mesaPoker.getApuestaTotalJug2();
     }
     
     public void subirLogica(String cantidadStr, Jugador jugador) {
@@ -313,13 +318,10 @@ public class Jugador extends JPanel {
     		logicaRonda.ejecutarTurnoJugador(bot);
         }
     	boolean aux = false;
-        if (cantidadSubida > mesaPoker.getApuestaTotalJug1()) {
+    	if (cantidadSubida > mesaPoker.getApuestaTotalJug1()) {
             if (bot.getSaldo() >= cantidadSubida) {
             	
-            	if(bot.getId() == 1)
-            		mesaPoker.setApuestaTotalJug1(mesaPoker.getApuestaTotalJug1() + cantidadSubida);
-            	else
-            		mesaPoker.setApuestaTotalJug2(mesaPoker.getApuestaTotalJug2() + cantidadSubida);
+            	mesaPoker.setApuestaTotalJug2(mesaPoker.getApuestaTotalJug2() + cantidadSubida);
             	
                 bot.reducirSaldo(cantidadSubida);
                 bot.aumentarApuesta(cantidadSubida);
@@ -330,6 +332,9 @@ public class Jugador extends JPanel {
             } else {
                 // Caso de all-in si el bot no tiene suficiente saldo para cubrir la subida
                 double saldoRestante = bot.getSaldo();
+                
+            	mesaPoker.setApuestaTotalJug2(mesaPoker.getApuestaTotalJug2() + saldoRestante);
+            	
                 bot.reducirSaldo(saldoRestante);
                 bot.aumentarApuesta(saldoRestante);
                 bot.registrarSubida(saldoRestante, bot); // Registrar el all-in como la nueva apuesta

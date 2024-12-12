@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class MesaPoker extends JFrame {
-    private static final double CIEGA_INICIAL = 100;
 	
     private Map<String, String> cartaImagenMap;
     private List<String> cartasDisponibles;
@@ -26,15 +25,14 @@ public class MesaPoker extends JFrame {
     private boolean modoAllIn = false;
     private int faseBoard = 0;
     private int jugadorCiegaPequena = 1; // El jugador que paga la ciega pequeña
-    private int jugadorCiegaGrande = 2; // El jugador que paga la ciega grande
     private int turnoActual; // Índice del jugador actual
     private int contadorTurno1 = 0;
-	private  int cont = 0;
-	private double apuestaActual = CIEGA_INICIAL;
+	private int cont = 0;
+	private double apuestaActual = 100;
     private double boteTotal = 0.0;
     private double apuestaTotalJug1 = 100;
     private double apuestaTotalJug2= 200;
-	private  double ciegaActual = CIEGA_INICIAL;
+	private double ciegaActual = 100;
     private double valorManoBot = 0;
     
     
@@ -387,22 +385,25 @@ public class MesaPoker extends JFrame {
         boteTotal = 0.0;
         boteLabel.setText("Bote: $0.00");
         
-        ciegaActual += 50; 
-        
+        this.ciegaActual += 50;
         if(jugadorCiegaPequena == 1) {
-        	apuestaTotalJug1 = ciegaActual;
-    		apuestaTotalJug2 = ciegaActual * 2;
+        	apuestaTotalJug1 = this.ciegaActual;
+    		apuestaTotalJug2 = this.ciegaActual * 2;
+    		jugadorCiegaPequena = 2;
         }else {
-        	apuestaTotalJug1 = ciegaActual * 2;
-    		apuestaTotalJug2 = ciegaActual;
+        	apuestaTotalJug1 = this.ciegaActual * 2;
+    		apuestaTotalJug2 = this.ciegaActual;
+    		jugadorCiegaPequena = 1;
         }
-        
+
     	this.contadorTurno1 = 0;
     	this.faseBoard = 0;
     	this.modoAllIn = false;
     	
         pagarCiegas(ciegaActual);
 
+        this.turnoActual = jugadorCiegaPequena;
+        
         // Verificar si un jugador se quedó sin saldo
         List<Integer> jugadoresConSaldo = new ArrayList<>();
         for (Jugador jugador : panelesJugadores.values()) {
@@ -441,34 +442,28 @@ public class MesaPoker extends JFrame {
     
     // Método para pagar las ciegas
     private void pagarCiegas(double ciegaActual) {
-        Jugador jugadorCiegaPequenaObj = panelesJugadores.get(jugadorCiegaPequena);
-        Jugador jugadorCiegaGrandeObj = panelesJugadores.get(jugadorCiegaGrande);
+        Jugador jugador = panelesJugadores.get(1);
+        Jugador bot = panelesJugadores.get(2);
 
-        // Ciega pequeña
-        if (jugadorCiegaPequenaObj.getSaldo() >= ciegaActual) {
-            jugadorCiegaPequenaObj.reducirSaldo(ciegaActual);
-            actualizarBote(ciegaActual);
+        if (jugador.getSaldo() >= apuestaTotalJug1) {
+        	jugador.reducirSaldo(apuestaTotalJug1);
+            actualizarBote(apuestaTotalJug1);
         } else {
-            double saldoRestante = jugadorCiegaPequenaObj.getSaldo();
-            jugadorCiegaPequenaObj.reducirSaldo(saldoRestante);
+            double saldoRestante = jugador.getSaldo();
+            jugador.reducirSaldo(saldoRestante);
             actualizarBote(saldoRestante);
-            mostrarMensaje("Jugador " + jugadorCiegaPequena + " hace all-in con $" + saldoRestante);
+            mostrarMensaje("Jugador " + 1 + " hace all-in con $" + saldoRestante);
         }
 
-        // Ciega grande
-        if (jugadorCiegaGrandeObj.getSaldo() >= ciegaActual * 2) {
-            jugadorCiegaGrandeObj.reducirSaldo(ciegaActual * 2);
-            actualizarBote(ciegaActual * 2);
+        if (bot.getSaldo() >= apuestaTotalJug2) {
+        	bot.reducirSaldo(apuestaTotalJug2);
+            actualizarBote(apuestaTotalJug2);
         } else {
-            double saldoRestante = jugadorCiegaGrandeObj.getSaldo();
-            jugadorCiegaGrandeObj.reducirSaldo(saldoRestante);
+            double saldoRestante = bot.getSaldo();
+            bot.reducirSaldo(saldoRestante);
             actualizarBote(saldoRestante);
-            mostrarMensaje("Jugador " + jugadorCiegaGrande + " hace all-in con $" + saldoRestante);
+            mostrarMensaje("Jugador " + 2 + " hace all-in con $" + saldoRestante);
         }
-
-        // Desplazar las posiciones de las ciegas
-        jugadorCiegaPequena = (jugadorCiegaPequena == 2) ? 1 : 2;
-        jugadorCiegaGrande = (jugadorCiegaGrande == 2) ? 1 : 2;
     }
 
 

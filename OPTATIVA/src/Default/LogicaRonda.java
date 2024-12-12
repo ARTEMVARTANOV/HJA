@@ -157,6 +157,7 @@ public class LogicaRonda {
     }
     
     public void pasarAlSiguienteJugador() {
+    	//System.out.println("Jugador: " + mesaPoker.getApuestaTotalJug1() + "Bot: " + mesaPoker.getApuestaTotalJug2());
     	List<Jugador> jugadores = new ArrayList<>();
     	Map<Integer, Jugador> panelesJugadores = mesaPoker.getPanelesJugadores();
     	for (Jugador jugador : panelesJugadores.values()) {
@@ -170,7 +171,10 @@ public class LogicaRonda {
     	else if(saldoJug2 == 0.0) 
     		mesaPoker.mostrarMensaje("El bot hizo All-In");
     	
-    	mesaPoker.setTurnoActual((mesaPoker.getTurnoActual() == 2) ? 1 : 2);
+    	if(mesaPoker.getContadorTurno1() != 0) 
+    		mesaPoker.setTurnoActual((mesaPoker.getTurnoActual() == 2) ? 1 : 2);
+    	else
+    		mesaPoker.setContadorTurno1(1);
     	Jugador jugadorActual = panelesJugadores.get(mesaPoker.getTurnoActual());
         if (jugadorActual.esBot()) {
             ejecutarTurnoBot(jugadorActual);
@@ -214,7 +218,11 @@ public class LogicaRonda {
     	else if(mesaPoker.getTipoBot() == 3)
     		multiplicador += 1;
     	
-    	double cantidadBot = Math.abs(mesaPoker.getApuestaTotalJug2() - mesaPoker.getApuestaTotalJug1()) + 200 * multiplicador;
+    	double cantidadBot = 0;
+    	if(mesaPoker.getApuestaTotalJug1() - mesaPoker.getApuestaTotalJug2() > 0 )
+    		cantidadBot = mesaPoker.getApuestaTotalJug1() - mesaPoker.getApuestaTotalJug2() + 200 * multiplicador;
+    	else
+    		cantidadBot = 200 * multiplicador;
     	
     	//posiciones: 1(AllIn), 2(Subida baja), 3(Subida media), 4(Subida alta), 5(Random All-In)
     	List<Integer> listaAux = obtenerListaAuxCantidad();
