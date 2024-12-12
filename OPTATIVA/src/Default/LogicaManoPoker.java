@@ -8,18 +8,29 @@ public class LogicaManoPoker {
     private String mejorManoPosible = "";
     private reorganizarStrings auxStrings = new reorganizarStrings();
 
-    public LogicaManoPoker(String[] strings, List<String> boardCompleto) {
+    public LogicaManoPoker(String[] strings, List<String> boardCompleto, boolean omaha) {
         List<String> cartasCompletas = new ArrayList<>();
         cartasCompletas.addAll(Arrays.asList(strings));
-        
-        cartasCompletas.addAll(boardCompleto);
-        generarCombinaciones(cartasCompletas, 5); // Genera combinaciones de 5 cartas.
+
+        if (!omaha) {
+            cartasCompletas.addAll(boardCompleto);
+            generarCombinaciones(cartasCompletas, 5); // Genera combinaciones de 5 cartas.
+        } else {
+            generarCombinacionesOmaha(Arrays.asList(strings), boardCompleto);
+        }
 
         buscarMejorMano();
     }
 
     public LogicaManoPoker() {}
 
+    public LogicaManoPoker(String[] manoBot, List<String> boardCompleto) {
+    	List<String> cartasCompletas = new ArrayList<>();
+        cartasCompletas.addAll(Arrays.asList(manoBot));
+        cartasCompletas.addAll(boardCompleto);
+        generarCombinaciones(cartasCompletas, 5);
+    	buscarMejorMano();
+	}
 
 	public ManoPoker.HandRank getMejorRank() {
         return mejorRankPosible;
@@ -43,6 +54,22 @@ public class LogicaManoPoker {
             combinacionActual.add(cartas.get(i));
             generarCombinacionesRecursivas(cartas, r, i + 1, combinacionActual);
             combinacionActual.remove(combinacionActual.size() - 1);
+        }
+    }
+
+    private void generarCombinacionesOmaha(List<String> mano, List<String> boardCompleto) {
+        generarCombinaciones(mano, 2); // Combinaciones de 2 cartas de la mano.
+        List<String> combinacionesMano = new ArrayList<>(combinaciones);
+
+        combinaciones.clear();
+        generarCombinaciones(boardCompleto, 3); // Combinaciones de 3 cartas del board.
+        List<String> combinacionesBoard = new ArrayList<>(combinaciones);
+
+        combinaciones.clear();
+        for (String cartasMano : combinacionesMano) {
+            for (String cartasBoard : combinacionesBoard) {
+                combinaciones.add(cartasMano + cartasBoard);
+            }
         }
     }
 

@@ -12,9 +12,8 @@ public class Jugador extends JPanel {
     private double apuestaActual;
     private boolean enJuego = true;
     private final Map<String, String> cartaImagenMap;
+    private final MesaPoker mesaPoker;
     private boolean esBot;
-	private MesaPoker mesaPoker;
-	private LogicaRonda logicaRonda;
 
     public Jugador(int numeroJugador, Map<String, String> cartaImagenMap, String[] cartasIniciales, double saldoInicial, Runnable onFoldCallback, MesaPoker mesaPoker, boolean esBot) {
         this(numeroJugador, cartaImagenMap, onFoldCallback, mesaPoker, saldoInicial, esBot);
@@ -23,12 +22,11 @@ public class Jugador extends JPanel {
 
     public Jugador(int numeroJugador, Map<String, String> cartaImagenMap, Runnable onFoldCallback, MesaPoker mesaPoker, double saldoInicial, boolean esBot) {
         this.numJugador = numeroJugador;
-        this.mesaPoker = mesaPoker;
         this.cartaImagenMap = cartaImagenMap;
+        this.mesaPoker = mesaPoker;
         this.saldo = saldoInicial;
         this.apuestaActual = 0;
         this.esBot = esBot;
-        this.logicaRonda = new LogicaRonda(mesaPoker);
 
         setPreferredSize(new Dimension(200, 400));
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -62,6 +60,12 @@ public class Jugador extends JPanel {
         etiqueta.setAlignmentX(CENTER_ALIGNMENT);
         etiqueta.setForeground(Color.WHITE);
         return etiqueta;
+    }
+
+    private JTextField crearCampoEntrada() {
+        JTextField campo = new JTextField(10);
+        campo.setMaximumSize(new Dimension(150, 30));
+        return campo;
     }
 
     private JPanel crearPanelCartas() {
@@ -104,6 +108,17 @@ public class Jugador extends JPanel {
         return esBot;
     }
 
+    public void apostar(double cantidad) {
+        if (cantidad <= saldo) {
+            saldo -= cantidad;
+            apuestaActual += cantidad;
+            mesaPoker.actualizarBote(cantidad); // Actualizar el bote en la mesa
+            actualizarSaldo();
+        } else {
+        	mesaPoker.mostrarMensaje("No tienes suficiente saldo para apostar $" + cantidad);
+        }
+    }
+
     public void ganarApuesta(double cantidad) {
         saldo += cantidad;
         actualizarSaldo();
@@ -121,11 +136,59 @@ public class Jugador extends JPanel {
     private void actualizarSaldo() {
         labelSaldo.setText(String.format("Saldo: $%.2f", saldo));
     }
+
+    public boolean puedeSeguirJugando() {
+        return saldo > 0;
+    }
+
+    public void actualizarProbabilidad(double probabilidad) {
+        //if (enJuego) {
+            //labelProbabilidad.setText(String.format("Probabilidad: %.2f%%", probabilidad));
+        //}
+    }
     
     public int getId() {
         return numJugador;
     }
-   
+
+    private void actualizarManoJugador(String[] cartas) {
+        // Verificar las cartas ingresadas dependiendo de la longitud
+        if (cartas.length == 2) {
+            // Para el póker clásico (2 cartas)
+            String carta1 = cartas[0].trim();
+            String carta2 = cartas[1].trim();
+            String rutaCarta1 = cartaImagenMap.get(carta1);
+            String rutaCarta2 = cartaImagenMap.get(carta2);
+            
+            if (mesaPoker.cartaEnDisponibles(carta1) && mesaPoker.cartaEnDisponibles(carta2) && rutaCarta1 != null && rutaCarta2 != null) {
+                reiniciarCartas(new String[]{carta1, carta2});
+                mesaPoker.actualizarManoJugador(numJugador, new String[]{carta1, carta2});
+            } else {
+            	mesaPoker.mostrarMensaje("Una o ambas cartas no son válidas o ya están en uso.");
+            }
+        } else if (cartas.length == 4) {
+            // Para Omaha (4 cartas)
+            String carta1 = cartas[0].trim();
+            String carta2 = cartas[1].trim();
+            String carta3 = cartas[2].trim();
+            String carta4 = cartas[3].trim();
+            String rutaCarta1 = cartaImagenMap.get(carta1);
+            String rutaCarta2 = cartaImagenMap.get(carta2);
+            String rutaCarta3 = cartaImagenMap.get(carta3);
+            String rutaCarta4 = cartaImagenMap.get(carta4);
+            
+            if (mesaPoker.cartaEnDisponibles(carta1) && mesaPoker.cartaEnDisponibles(carta2) &&
+                mesaPoker.cartaEnDisponibles(carta3) && mesaPoker.cartaEnDisponibles(carta4) &&
+                rutaCarta1 != null && rutaCarta2 != null && rutaCarta3 != null && rutaCarta4 != null) {
+                reiniciarCartas(new String[]{carta1, carta2, carta3, carta4});
+                mesaPoker.actualizarManoJugador(numJugador, new String[]{carta1, carta2, carta3, carta4});
+            } else {
+            	mesaPoker.mostrarMensaje("Una o más cartas no son válidas o ya están en uso.");
+            }
+        }
+    }
+
+    
     public void reiniciarCartas(String[] cartas) {
     	eliminarTodasLasCartas();
         for (int i = 0; i < cartas.length && i < cartaPanels.length; i++) {
@@ -180,200 +243,6 @@ public class Jugador extends JPanel {
         // Revalidar y repintar para actualizar la interfaz
         revalidate();
         repaint();
-    }
-	
-	public void check(Jugador jugador) {
-    	double cantidadPorVer = calcularCantidadPorVer(jugador);
-    	if(mesaPoker.getAllIn()) {
-    		mesaPoker.mostrarMensaje("Con un All-In solo se puede Ver o Foldear.");
-    		logicaRonda.ejecutarTurnoJugador(jugador);
-        }
-    	
-        if (cantidadPorVer != 0) {
-        	mesaPoker.mostrarMensaje("No puedes hacer 'check'. Hay apuestas activas.");
-        	logicaRonda.ejecutarTurnoJugador(jugador);
-        } else {
-            if (jugador.estaEnJuego() && mesaPoker.getApuestaTotalJug1() == mesaPoker.getApuestaTotalJug2() 
-            		&& mesaPoker.getContadorTurno1() != 0) {
-            	logicaRonda.avanzarFaseBoard(false);
-            } 
-            if(mesaPoker.getContadorTurno1() == 0) 
-            	mesaPoker.setContadorTurno1(1);
-            logicaRonda.pasarAlSiguienteJugador();
-        }
-    }
-
-    public void ver(Jugador jugador) {
-    	boolean aux = false;
-    	
-        double cantidadPorVer = calcularCantidadPorVer(jugador);
-        if (cantidadPorVer > 0) {
-            if (jugador.getSaldo() >= cantidadPorVer) {
-            	
-            	if(jugador.getId() == 1)
-            		mesaPoker.setApuestaTotalJug1(mesaPoker.getApuestaTotalJug1() + cantidadPorVer);
-            	else
-            		mesaPoker.setApuestaTotalJug2(mesaPoker.getApuestaTotalJug2() + cantidadPorVer);
-            	
-                jugador.reducirSaldo(cantidadPorVer);
-                jugador.aumentarApuesta(cantidadPorVer);
-                mesaPoker.actualizarBote(cantidadPorVer);
-                mesaPoker.mostrarMensaje("Jugador " + jugador.getId() + " iguala con $" + cantidadPorVer);
-                jugador.resetApuesta(); // Resetea la apuesta actual del jugador para reflejar la igualdad.
-                if (jugador.estaEnJuego() && mesaPoker.getApuestaTotalJug1() == mesaPoker.getApuestaTotalJug2() 
-                		&& mesaPoker.getContadorTurno1() != 0 && !mesaPoker.getAllIn()) {
-                	logicaRonda.avanzarFaseBoard(false);
-                }
-                	
-            } else {
-                double saldoRestante = jugador.getSaldo();
-                jugador.reducirSaldo(saldoRestante);
-                jugador.aumentarApuesta(saldoRestante);
-                mesaPoker.actualizarBote(saldoRestante);
-                mesaPoker.mostrarMensaje("Jugador " + jugador.getId() + " hace all-in con $" + saldoRestante);
-            }
-            apuestaActual = logicaRonda.calcularApuestaMaxima(); // Ajustar la apuesta máxima al estado actual.
-        } else {
-        	mesaPoker.mostrarMensaje("Apuesta igualada, puedes hacer 'Check' o 'Raise'.");
-        	logicaRonda.ejecutarTurnoJugador(jugador);
-            aux = true;
-        }
-        if(mesaPoker.getAllIn()) {
-        	logicaRonda.iniciarModoAllIn();
-        	aux = true;
-        }
-        else if(aux == false) {
-        	if (logicaRonda.algunoAllIn()) {
-        		mesaPoker.setAllIn(true);
-            }
-        	if(mesaPoker.getContadorTurno1() == 0) 
-        		mesaPoker.setContadorTurno1(1);
-        	logicaRonda.pasarAlSiguienteJugador();
-        }
-    }
-
-    public double calcularCantidadPorVer(Jugador jugador) {
-    	System.out.println("Bot: " + mesaPoker.getApuestaTotalJug2() + " Jugador: " + mesaPoker.getApuestaTotalJug1());
-    	if (jugador.getId() == 1)
-    		return mesaPoker.getApuestaTotalJug2() - mesaPoker.getApuestaTotalJug1();
-    	else
-    		return mesaPoker.getApuestaTotalJug1() - mesaPoker.getApuestaTotalJug2();
-    }
-    
-    public void subirLogica(String cantidadStr, Jugador jugador) {
-        try {
-            double cantidad = Double.parseDouble(cantidadStr.trim());
-
-            if (jugador.getId() == 1) {
-                if (mesaPoker.getApuestaTotalJug2() >= mesaPoker.getApuestaTotalJug1() + cantidad) {
-                	mesaPoker.mostrarMensaje("La cantidad debe ser mayor a la apuesta actual.");
-                	logicaRonda.ejecutarTurnoJugador(jugador);
-                    return;
-                }
-            } else {
-                if (mesaPoker.getApuestaTotalJug1() >= mesaPoker.getApuestaTotalJug2() + cantidad) {
-                	mesaPoker.mostrarMensaje("La cantidad debe ser mayor a la apuesta actual.");
-                	logicaRonda.ejecutarTurnoJugador(jugador);
-                    return;
-                }
-            }
-
-            if (jugador.getSaldo() >= cantidad) {
-                if (jugador.getId() == 1)
-                	mesaPoker.setApuestaTotalJug1(mesaPoker.getApuestaTotalJug1() + cantidad);
-                else
-                	mesaPoker.setApuestaTotalJug2(mesaPoker.getApuestaTotalJug2() + cantidad);
-
-                jugador.reducirSaldo(cantidad);
-                jugador.aumentarApuesta(cantidad);
-                jugador.registrarSubida(cantidad, jugador);
-                mesaPoker.actualizarBote(cantidad);
-                mesaPoker.setApuestaActual(mesaPoker.getApuestaActual() + cantidad);
-
-                if (mesaPoker.getAllIn()) {
-                	logicaRonda.iniciarModoAllIn();
-                } else {
-                    if (logicaRonda.algunoAllIn()) {
-                    	mesaPoker.setAllIn(true);
-                    }
-                    if (mesaPoker.getContadorTurno1() == 0)
-                    	mesaPoker.setContadorTurno1(1);
-                    logicaRonda.pasarAlSiguienteJugador();
-                }
-            } else {
-            	mesaPoker.mostrarMensaje("Jugador " + jugador.getId() + " no puede apostar más dinero del que tiene.");
-            	logicaRonda.ejecutarTurnoJugador(jugador);
-            }
-
-        } catch (NumberFormatException ex) {
-        	mesaPoker.mostrarMensaje("Entrada no válida.");
-        	logicaRonda.ejecutarTurnoJugador(jugador);
-        }
-		
-	}
-    
-    public void subirBot(Jugador bot, double cantidadSubida) {
-    	if(mesaPoker.getAllIn()) {
-    		mesaPoker.mostrarMensaje("Con un All-In solo se puede Ver o Foldear.");
-    		logicaRonda.ejecutarTurnoJugador(bot);
-        }
-    	boolean aux = false;
-    	if (cantidadSubida > mesaPoker.getApuestaTotalJug1()) {
-            if (bot.getSaldo() >= cantidadSubida) {
-            	
-            	mesaPoker.setApuestaTotalJug2(mesaPoker.getApuestaTotalJug2() + cantidadSubida);
-            	
-                bot.reducirSaldo(cantidadSubida);
-                bot.aumentarApuesta(cantidadSubida);
-                bot.registrarSubida(cantidadSubida, bot);
-                mesaPoker.actualizarBote(cantidadSubida);
-                mesaPoker.setApuestaActual(mesaPoker.getApuestaActual() + cantidadSubida); // Actualizar apuesta actual al all-in
-                mesaPoker.mostrarMensaje("El bot ha hecho raise de $ " + cantidadSubida);
-            } else {
-                // Caso de all-in si el bot no tiene suficiente saldo para cubrir la subida
-                double saldoRestante = bot.getSaldo();
-                
-            	mesaPoker.setApuestaTotalJug2(mesaPoker.getApuestaTotalJug2() + saldoRestante);
-            	
-                bot.reducirSaldo(saldoRestante);
-                bot.aumentarApuesta(saldoRestante);
-                bot.registrarSubida(saldoRestante, bot); // Registrar el all-in como la nueva apuesta
-                mesaPoker.actualizarBote(saldoRestante);
-                mesaPoker.setApuestaActual(mesaPoker.getApuestaActual() + saldoRestante); // Actualizar apuesta actual al all-in
-                mesaPoker.mostrarMensaje("Bot hace all-in con $ " + saldoRestante);
-            }
-        } else {
-        	mesaPoker.mostrarMensaje("El bot no puede subir por debajo de la apuesta actual.");
-        }
-
-        // Verificación para iniciar modo all-in si todos aceptan
-        if(mesaPoker.getAllIn()) {
-        	logicaRonda.iniciarModoAllIn();
-        	aux = true;
-        }
-        if(aux == false) {
-        	if (logicaRonda.algunoAllIn()) {
-        		mesaPoker.setAllIn(true); 
-            }
-        	if(mesaPoker.getContadorTurno1() == 0) 
-        		mesaPoker.setContadorTurno1(1);
-        	logicaRonda.pasarAlSiguienteJugador();
-        }
-    }
-    
-    public void foldear(Jugador jugador) {
-    	mesaPoker.setJugadoresActivos(jugador, false);
-    	mesaPoker.mostrarMensaje("Jugador " + jugador.getId() + " se retira.");
-    	mesaPoker.setContadorTurno1(0);
-    	logicaRonda.verificarGanador(); // Verificar si queda un solo jugador activo
-    	logicaRonda.pasarAlSiguienteJugador();
-    }
-    
-    
-    public void registrarSubida(double cantidad, Jugador jugudor) {
-        apuestaActual = Math.max(apuestaActual, cantidad); // Mantiene la apuesta máxima actualizada.
-        if(jugudor.getId() == 1)
-        	mesaPoker.mostrarMensaje("Nueva subida registrada: $" + String.format("%.2f", cantidad));
     }
 
 }
